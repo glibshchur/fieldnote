@@ -77,6 +77,7 @@ All model choices are environment variables; see `fieldnote/config.py`.
 make install-ml            # uv sync with torch, transformers, faster-whisper, streamlit
 export ANTHROPIC_API_KEY=...
 make fetch                 # download manuals listed in data/manifest.yaml
+make calls                 # render support-call scripts to audio (macOS say)
 make ingest                # manuals, photos, calls -> artifacts/chunks.jsonl
 make index                 # native multimodal index
 make caption               # caption-only baseline index

@@ -1,4 +1,4 @@
-.PHONY: install install-ml test lint fetch ingest index caption eval-native eval-caption compare serve demo qdrant
+.PHONY: install install-ml test lint fetch calls ingest index caption eval-native eval-caption compare serve demo qdrant
 
 install:
 	uv sync
@@ -14,6 +14,10 @@ lint:
 
 fetch:
 	uv run fieldnote fetch
+
+# macOS only: render the support-call scripts to audio with `say`
+calls:
+	uv run python scripts/tts_calls.py
 
 ingest:
 	uv run --extra ml fieldnote ingest

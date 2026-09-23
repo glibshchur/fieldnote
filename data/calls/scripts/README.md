@@ -5,10 +5,11 @@ Each call is grounded in a real manual page and adds one piece of field advice t
 **not in any manual** (marked `CALL-ONLY` below the script), so some eval questions can
 only be answered from the recording.
 
-Recording: two voices, 2–3 minutes, natural pace, a little small talk is fine. Save as
-`data/calls/<script name>.m4a` (or .wav/.mp3), matching the file names below, because
-`eval/questions.jsonl` refers to them. The recordings are committed-free (gitignored);
-the scripts are the source of truth.
+Recordings are synthetic: `make calls` renders each script with macOS `say`, two voices
+per call (rotated across calls, including Australian and British rep voices), into
+`data/calls/<script name>.wav` at 16 kHz mono. The WAVs are gitignored and regenerated on
+demand. Gold timestamps in `eval/questions.jsonl` were pinned from Whisper transcripts of
+these renders. To swap in human recordings, keep the file stems and re-pin the `t` values.
 
 The advice in these scripts is written for a portfolio eval, not as service guidance.
 
