@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from fieldnote.config import Settings
-from fieldnote.ingest.audio import Transcriber, ingest_calls
+from fieldnote.ingest.audio import AUDIO_EXTS, Transcriber, ingest_calls
 from fieldnote.ingest.pdf import PdfIngestOptions, ingest_pdf
 from fieldnote.ingest.photos import ingest_photos
 from fieldnote.types import Chunk
@@ -27,7 +27,7 @@ def ingest_corpus(
         chunks.extend(ingest_photos(photos, settings.photos_dir))
 
     calls = data / "calls"
-    if calls.exists() and any(calls.iterdir()):
+    if calls.exists() and any(p.suffix.lower() in AUDIO_EXTS for p in calls.iterdir()):
         if transcriber is None:
             from fieldnote.ingest.audio import FasterWhisperTranscriber
 

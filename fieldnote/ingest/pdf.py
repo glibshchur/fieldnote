@@ -18,6 +18,9 @@ import pymupdf
 
 from fieldnote.types import Chunk
 
+# Some manufacturer PDFs carry malformed ICC color profiles; MuPDF recovers but is noisy.
+pymupdf.TOOLS.mupdf_display_errors(False)
+
 Rect = tuple[float, float, float, float]
 
 TEXT_CHUNK_CHARS = 900

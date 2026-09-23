@@ -468,6 +468,7 @@ dependencies = [
     { name = "pymupdf" },
     { name = "pyyaml" },
     { name = "qdrant-client" },
+    { name = "truststore" },
     { name = "typer" },
     { name = "uvicorn" },
 ]
@@ -505,6 +506,7 @@ requires-dist = [
     { name = "streamlit", marker = "extra == 'app'", specifier = ">=1.38" },
     { name = "torch", marker = "extra == 'ml'", specifier = ">=2.4" },
     { name = "transformers", marker = "extra == 'ml'", specifier = ">=4.51" },
+    { name = "truststore", specifier = ">=0.10" },
     { name = "typer", specifier = ">=0.12" },
     { name = "uvicorn", specifier = ">=0.30" },
 ]

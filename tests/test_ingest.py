@@ -83,3 +83,13 @@ def test_calls_use_transcriber_and_cache(tmp_path: Path):
     assert chunks[0].modality == "audio" and chunks[0].start_s == 0.0
     assert "superheat" in chunks[0].text
     assert [c.id for c in chunks] == [c.id for c in chunks_again]
+
+
+def test_corpus_without_audio_never_loads_whisper(manual_pdf: Path, settings):
+    from fieldnote.ingest import ingest_corpus
+
+    calls = settings.data_dir / "calls"
+    calls.mkdir(parents=True)
+    (calls / ".gitkeep").write_text("")
+    chunks = ingest_corpus(settings)  # would raise ImportError if it tried to load faster-whisper
+    assert chunks and not any(c.modality == "audio" for c in chunks)
