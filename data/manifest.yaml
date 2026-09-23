@@ -1,12 +1,129 @@
-# Corpus manifest. Manuals are not committed; `make fetch` downloads them and
-# verifies the hash. Add one entry per publicly available service manual.
+# Corpus manifest. Manuals are not committed (manufacturer copyright); `make fetch`
+# downloads them and records/verifies sha256. Every URL passed a HEAD check on
+# 2026-09-23 (HTTP 200, application/pdf).
 #
-# manuals:
-#   - file: <short_name>.pdf          # name used in eval gold_sources
-#     url: <public URL of the PDF>
-#     sha256: <filled in after the first fetch>
-#     manufacturer: <name>
-#     model: <equipment model>
-#     why: <which charts/diagrams/tables make it useful>
+# `why` notes: "confirmed" = seen in search results for this file;
+# "typ." = typical for that manufacturer's document series, check on first read.
+# `host: mirror` = not hosted by the manufacturer (distributor, rep or training site).
 
-manuals: []
+manuals:
+  - {file: aaon_rn_nextgen_410a_iom.pdf, manufacturer: AAON, model: "RN Next Gen 11-70 ton", doc_type: iom, size_mb: 10.7, host: manufacturer,
+     url: "https://www.aaon.com/hubfs/Documents/IOM/410A/RN_NextGen_IOM_240502_410A.pdf",
+     why: "confirmed: R-410A P-T charts p.61-62; typ.: wiring diagrams, charging tables"}
+  - {file: aaon_rq_410a_iom.pdf, manufacturer: AAON, model: "RQ 2-5 ton RTU/heat pump", doc_type: iom, size_mb: 9.6, host: manufacturer,
+     url: "https://www.aaon.com/hubfs/Documents/IOM/410A/RQ_IOM_240625_410a.pdf",
+     why: "typ.: P-T chart, subcooling/superheat charging tables, wiring diagrams"}
+  - {file: aaon_cf_condensing_iom.pdf, manufacturer: AAON, model: "CF condensing unit", doc_type: iom, size_mb: 6.4, host: manufacturer,
+     url: "https://www.aaon.com/hubfs/Documents/IOM/410A/CF_IOM_230430_410A.pdf",
+     why: "typ.: P-T chart, charging tables, wiring diagrams"}
+  - {file: bryant_580j_17-30_install.pdf, manufacturer: Bryant, model: "580J 17-30", doc_type: installation, size_mb: null, host: manufacturer,
+     url: "https://www.shareddocs.com/hvac/docs/1005/Public/0F/II580J-17-30-V-04.pdf",
+     why: "typ.: fan performance tables, wiring diagrams, economizer wiring"}
+  - {file: bryant_569j_condensing_iss.pdf, manufacturer: Bryant, model: "569J 16-28 split condensing", doc_type: installation, size_mb: null, host: manufacturer,
+     url: "https://www.shareddocs.com/hvac/docs/1005/Public/06/II569J-16-28-02.pdf",
+     why: "typ.: cooling charging charts, ladder diagrams, troubleshooting table"}
+  - {file: carrier_48tc_04-16_service.pdf, manufacturer: Carrier, model: "48TC 04-16", doc_type: service, size_mb: null, host: manufacturer,
+     url: "https://www.shareddocs.com/hvac/docs/1009/Public/0F/48TC-4-16-01SM.pdf",
+     why: "confirmed: cooling charging charts (A04-A12), fan performance appendix; typ.: wiring, alarm tables"}
+  - {file: carrier_50tc_17-30_service.pdf, manufacturer: Carrier, model: "50TC/50HC 17-30", doc_type: service, size_mb: null, host: manufacturer,
+     url: "https://www.shareddocs.com/hvac/docs/1009/Public/02/50TC-17-30-01SM.pdf",
+     why: "typ.: charging charts, fan performance tables, wiring diagrams"}
+  - {file: carrier_38au_07-14_iss.pdf, manufacturer: Carrier, model: "38AUZ/38AUD 07-14", doc_type: installation, size_mb: null, host: manufacturer,
+     url: "https://www.shareddocs.com/hvac/docs/1005/Public/06/38AU-7-14-05SI.pdf",
+     why: "confirmed: LP switch / solenoid troubleshooting; typ.: charging charts, wiring, liquid-lift tables"}
+  - {file: carrier_38auzd-e08_install.pdf, manufacturer: Carrier, model: "38AUZD/E08", doc_type: installation, size_mb: null, host: manufacturer,
+     url: "https://www.shareddocs.com/hvac/docs/1009/Public/02/38AUZD-E08-01SI.pdf",
+     why: "confirmed: charging chart; typ.: wiring diagram"}
+  - {file: carrier_38mura_service.pdf, manufacturer: Carrier, model: "38MURA heat pump", doc_type: service, size_mb: null, host: manufacturer,
+     url: "https://www.shareddocs.com/hvac/docs/1009/Public/0C/SG-38MURA-02.pdf",
+     why: "confirmed: wiring diagrams, refrigerant cycle diagrams, error codes"}
+  - {file: carrier_economizer_x_llecon.pdf, manufacturer: Carrier, model: "EconoMi$er X (W7220)", doc_type: component, size_mb: null, host: manufacturer,
+     url: "https://www.shareddocs.com/hvac/docs/1009/Public/04/LLECON-02SI.pdf",
+     why: "confirmed: W7220 wiring diagrams; typ.: setpoint tables, alarm menu"}
+  - {file: copeland_ae4-1365_zp_5-12ton.pdf, manufacturer: Copeland, model: "ZP*K3/KC/KW 5-12 ton scroll", doc_type: component, size_mb: 1.2, host: manufacturer,
+     url: "https://webapps.copeland.com/online-product-information/Publication/LaunchPDF?Index=aeb&PDF=AE4-1365_R6.pdf",
+     why: "confirmed: R-410A operating envelope Figs 1a/1b"}
+  - {file: copeland_ae4-1388_zp_zh_kc.pdf, manufacturer: Copeland, model: "ZH*KC/ZP*KC scroll", doc_type: component, size_mb: 1.1, host: manufacturer,
+     url: "https://webapps.copeland.com/online-product-information/Publication/LaunchPDF?Index=AEB&PDF=1388",
+     why: "confirmed: operating envelopes"}
+  - {file: copeland_ae1385_coresense.pdf, manufacturer: Copeland, model: "CoreSense Diagnostics", doc_type: component, size_mb: 0.6, host: manufacturer,
+     url: "https://webapps.copeland.com/online-product-information/Publication/LaunchPDF?Index=AEB&PDF=1385",
+     why: "confirmed: ALERT/TRIP LED flash-code table"}
+  - {file: daikin_dcg_dcc_dch_3-6ton_service.pdf, manufacturer: Daikin, model: "DCG/DCC/DCH 3-6 ton", doc_type: service, size_mb: 7.9, host: manufacturer,
+     url: "https://cdn.daikincloud.io/PIM/Assets/Documents/RSD6412006r50.pdf",
+     why: "confirmed: troubleshooting, wiring, blower data"}
+  - {file: daikin_dcg_dcc_15-25ton_service.pdf, manufacturer: Daikin, model: "DCG/DCC 15-25 ton", doc_type: service, size_mb: 7.0, host: manufacturer,
+     url: "https://cdn.daikincloud.io/PIM/Assets/Documents/RSD6412008r44.pdf",
+     why: "typ.: wiring diagrams, troubleshooting charts, blower performance"}
+  - {file: daikin_rebel_im1125.pdf, manufacturer: Daikin, model: "Rebel DPS 3-28 ton", doc_type: iom, size_mb: 23.3, host: mirror,
+     url: "https://dxseng.com/wp-content/uploads/2020/10/Daikin-Rebel-Rooftop-3-28Tn-Manual-Daikin-IM-1125-11.pdf",
+     why: "confirmed: wiring diagrams, sequence of operation"}
+  - {file: danfoss_sm_sy_sz_scroll.pdf, manufacturer: Danfoss, model: "Performer SM/SY/SZ scroll", doc_type: component, size_mb: 2.4, host: manufacturer,
+     url: "https://assets.danfoss.com/documents/latest/90094/AB237986441643en-US0701.pdf",
+     why: "typ.: operating envelope charts, wiring diagrams"}
+  - {file: goodman_gsz14_service.pdf, manufacturer: Goodman, model: "GSZ14 heat pump", doc_type: service, size_mb: 9.4, host: mirror,
+     url: "https://documents.alpinehomeair.com/product/Goodman%20GSZ14%20Service%20Manual.pdf",
+     why: "confirmed: TXV superheat guidance, wiring diagrams; typ.: charging charts"}
+  - {file: goodman_condensing_hp_r410a_service.pdf, manufacturer: Goodman, model: "ANX/SSX/ASX/GSX/DSX", doc_type: service, size_mb: 5.0, host: mirror,
+     url: "https://documents.alpinehomeair.com/product/Goodman%20Condesning%20unit%20&%20Heat%20Pump%20R410A%20Service%20Manual.pdf",
+     why: "typ.: charging charts, troubleshooting charts, wiring diagrams"}
+  - {file: honeywell_jade_w7220_install.pdf, manufacturer: Honeywell, model: "JADE W7220 economizer", doc_type: component, size_mb: 1.8, host: manufacturer,
+     url: "https://prod-edam.honeywell.com/content/dam/honeywell-edam/hbt/en-us/documents/manuals-and-guides/installation-guides/62-0331.pdf",
+     why: "typ.: terminal diagrams, changeover settings, alarm tables"}
+  - {file: jci_penn_p70_low_pressure.pdf, manufacturer: Johnson Controls, model: "PENN P70/P72/P170", doc_type: component, size_mb: 0.4, host: manufacturer,
+     url: "https://docs.johnsoncontrols.com/bas/api/khub/documents/5qKFAFWVpwQJOiksHEMMGQ/content",
+     why: "typ.: switch wiring, cut-in/cut-out range charts"}
+  - {file: lennox_lgh_7.5-12.5_service.pdf, manufacturer: Lennox, model: "LGH/LCH 092-152", doc_type: service, size_mb: 9.8, host: manufacturer,
+     url: "https://www.lennox.com/dA/efd0657429/1069939~1008f.pdf",
+     why: "confirmed: charging curves, operating pressure tables 65-115F, blower tables"}
+  - {file: lennox_lgh_13-25_service.pdf, manufacturer: Lennox, model: "LGH 13-25 ton", doc_type: service, size_mb: 13.9, host: manufacturer,
+     url: "https://www.lennox.com/dA/01691fc9f0/1013.pdf",
+     why: "typ.: charging curves, operating pressures, blower tables, wiring"}
+  - {file: lennox_lgh_3-6_service.pdf, manufacturer: Lennox, model: "LGH 3-6 ton", doc_type: service, size_mb: 4.3, host: manufacturer,
+     url: "https://www.lennox.com/dA/e60652ca18/1605.pdf",
+     why: "typ.: charging curves, blower tables, wiring diagrams"}
+  - {file: lennox_lgx_lcx_092-150_install.pdf, manufacturer: Lennox, model: "LGX/LCX 092-150", doc_type: installation, size_mb: 4.9, host: manufacturer,
+     url: "https://www.lennox.com/dA/11914fe192/508513-01.pdf",
+     why: "typ.: charging tables/curves, wiring diagrams, blower data"}
+  - {file: lennox_tsa_condensing_install.pdf, manufacturer: Lennox, model: "TSA split condensing", doc_type: installation, size_mb: 0.8, host: manufacturer,
+     url: "https://lennox.com.pe/informacion_tecnica/Condensadora_TSA_manual_Lennox.pdf",
+     why: "typ.: charging table/curve, wiring diagram"}
+  - {file: mitsubishi_puz_puy_nha3_service.pdf, manufacturer: Mitsubishi Electric, model: "PUZ/PUY-A NHA3", doc_type: service, size_mb: 12.3, host: manufacturer,
+     url: "https://www.mitsubishitechinfo.ca/sites/default/files/SH_PUY-PUZ-NHA3_series_OCH458.pdf",
+     why: "confirmed: refrigerant system diagram p.25, troubleshooting p.28+"}
+  - {file: mitsubishi_puhy_lmu_service.pdf, manufacturer: Mitsubishi Electric, model: "City Multi PUHY-P LMU-A", doc_type: service, size_mb: 8.9, host: manufacturer,
+     url: "https://www.mitsubishitechinfo.ca/sites/default/files/SH_PUHY-P-(T)(Y)(S)LMU-A_HWE14080.pdf",
+     why: "typ.: board layouts, wiring diagrams, error-code tables"}
+  - {file: rheem_rawl_10-20ton_install.pdf, manufacturer: Rheem, model: "RAWL 10-20 ton condensing", doc_type: installation, size_mb: 1.6, host: manufacturer,
+     url: "https://files.myrheem.com/webpartners/ProductDocuments/6B9094DE-B140-4421-A21D-4D853F8B44A7.pdf",
+     why: "confirmed: evacuation and charging section; typ.: wiring diagrams"}
+  - {file: sporlan_bulletin_10-10.pdf, manufacturer: Sporlan, model: "TXV Bulletin 10-10", doc_type: component, size_mb: 3.0, host: mirror,
+     url: "http://www.refrigerationcomponents.ca/Products/Parker/Sporlan/bulletins/10-10.PDF",
+     why: "TEV capacity tables, correction factor charts"}
+  - {file: sporlan_bulletin_10-9.pdf, manufacturer: Sporlan, model: "TXV theory, Bulletin 10-9", doc_type: component, size_mb: 0.5, host: mirror,
+     url: "https://hvacrassets.net/handouts/mod3-141_handout9.pdf",
+     why: "confirmed: superheat characteristic curves"}
+  - {file: trane_precedent_yhj_rt-svx075a.pdf, manufacturer: Trane, model: "Precedent YHJ 6-25 ton", doc_type: iom, size_mb: 13.6, host: manufacturer,
+     url: "https://www.trane.com/content/dam/Trane/Commercial/global/products-systems/equipment/unitary/rooftop-systems/precedent-3-to-25-tons/RT-SVX075A-EN_12022022.pdf",
+     why: "typ.: subcooling charging curves, wiring diagrams, fan performance"}
+  - {file: trane_precedent_hp_rt-svx23r.pdf, manufacturer: Trane, model: "Precedent heat pump 3-10 ton", doc_type: iom, size_mb: 12.8, host: manufacturer,
+     url: "https://elibrary.tranetechnologies.com/public/commercial-hvac/Literature/Installation%20Operation%20and%20Maintenance/RT-SVX23R-EN_09222022.pdf",
+     why: "confirmed: wiring figures, demand defrost, fan data; typ.: charging curves"}
+  - {file: trane_voyager_27-50_iom.pdf, manufacturer: Trane, model: "Voyager 27.5-50 ton", doc_type: iom, size_mb: 5.8, host: manufacturer,
+     url: "https://www.trane.com/content/dam/Trane/Commercial/lar/es/product-systems/comercial/Rooftops/VoyagerIII/iom/Voyager%2027.5%20a%2050%20TR%20IOM%20(Ingl%C3%A9s).pdf",
+     why: "typ.: fan curves, charging, ReliaTel wiring/diagnostics"}
+  - {file: trane_odyssey_tta_ss-svx001c.pdf, manufacturer: Trane, model: "Odyssey TTA/TWA 6-25 ton", doc_type: iom, size_mb: 11.7, host: manufacturer,
+     url: "https://www.trane.com/content/dam/Trane/Commercial/global/products-systems/equipment/unitary/split-systems/odyssey-6-to-25-tons/SS-SVX001C-EN_09102021.pdf",
+     why: "typ.: charging curves, wiring diagrams, Symbio layout"}
+  - {file: trane_rauj_cauj_ss-svx11m.pdf, manufacturer: Trane, model: "RAUJ/CAUJ 20-120 ton", doc_type: iom, size_mb: 5.9, host: manufacturer,
+     url: "https://www.trane.com/content/dam/Trane/Commercial/global/products-systems/equipment/unitary/split-systems/rauj-cauj-20-to-120-tons/SS-SVX11M-EN_07092021.pdf",
+     why: "typ.: charging/subcooling data, wiring diagrams, diagnostics"}
+  - {file: trane_4twr7_service_facts.pdf, manufacturer: Trane, model: "4TWR7048A heat pump", doc_type: service, size_mb: 1.0, host: mirror,
+     url: "https://assets.unilogcorp.com/267/ITEM/DOC/TRANE_4TWR7048A1000D_Service_Manual.pdf",
+     why: "confirmed: R-410A charging charts (liquid line temp vs pressure)"}
+  - {file: york_yhe_heatpump_install.pdf, manufacturer: York, model: "YHE heat pump 1.5-5 ton", doc_type: installation, size_mb: 2.3, host: manufacturer,
+     url: "https://www.yorknow.com/pub/media/documentation/YHE_Install.pdf",
+     why: "typ.: charging/subcooling tables, wiring diagrams, defrost board"}
+  - {file: york_zf_7.5-12.5_techguide.pdf, manufacturer: York, model: "ZF Sun Pro 7.5-12.5 ton", doc_type: techguide, size_mb: 3.0, host: manufacturer,
+     url: "https://lemoyne.yorknow.com/pub/media/documentation/yorksunprostandardzfrooftopstechguide.pdf",
+     why: "typ.: blower performance tables, wiring diagrams"}
