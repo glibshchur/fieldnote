@@ -93,3 +93,16 @@ def test_corpus_without_audio_never_loads_whisper(manual_pdf: Path, settings):
     (calls / ".gitkeep").write_text("")
     chunks = ingest_corpus(settings)  # would raise ImportError if it tried to load faster-whisper
     assert chunks and not any(c.modality == "audio" for c in chunks)
+
+
+def test_render_caps_poster_size_pages(tmp_path: Path):
+    import pymupdf
+
+    from fieldnote.ingest.pdf import MAX_RENDER_PX, render
+
+    doc = pymupdf.open()
+    page = doc.new_page(width=14400, height=3600)  # 200 x 50 inch wiring diagram sheet
+    out = tmp_path / "poster.png"
+    render(page, out, dpi=200)
+    with Image.open(out) as im:
+        assert max(im.size) <= MAX_RENDER_PX

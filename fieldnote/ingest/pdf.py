@@ -11,6 +11,7 @@ Figures are indexed as images, never captioned. That is the whole point.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -21,6 +22,8 @@ from fieldnote.types import Chunk
 # Some manufacturer PDFs carry malformed ICC color profiles; MuPDF recovers but is noisy.
 pymupdf.TOOLS.mupdf_display_errors(False)
 
+log = logging.getLogger(__name__)
+
 Rect = tuple[float, float, float, float]
 
 TEXT_CHUNK_CHARS = 900
@@ -29,6 +32,7 @@ MIN_VECTOR_ITEMS = 6  # a chart or diagram has many strokes; an underline has on
 CLUSTER_GAP = 10.0  # merge drawings closer than this (points)
 CROP_MARGIN = 18.0  # include axis labels and legends that sit just outside the strokes
 PAGE_COVER_LIMIT = 0.9  # ignore page frames/borders
+MAX_RENDER_PX = 4000
 
 
 @dataclass
@@ -49,7 +53,10 @@ def ingest_pdf(
     chunks: list[Chunk] = []
     with pymupdf.open(pdf_path) as doc:
         for page in doc:
-            chunks.extend(_ingest_page(page, pdf_path, crops_dir, pages_dir, opts))
+            try:
+                chunks.extend(_ingest_page(page, pdf_path, crops_dir, pages_dir, opts))
+            except Exception as e:  # one malformed page must not sink a 3,000-page ingest
+                log.warning("skipping %s p%d: %s", pdf_path.name, page.number + 1, e)
     return chunks
 
 
@@ -70,7 +77,7 @@ def _ingest_page(
     for i, (rect, kind) in enumerate(regions):
         clip = _expand(rect, CROP_MARGIN, page.rect)
         out = crops_dir / f"{stem}_p{pno:03d}_{kind}{i}.png"
-        page.get_pixmap(clip=pymupdf.Rect(clip), dpi=opts.crop_dpi).save(out)
+        render(page, out, opts.crop_dpi, clip)
         chunks.append(
             Chunk(
                 modality="image",
@@ -86,7 +93,7 @@ def _ingest_page(
 
     if opts.index_pages:
         out = pages_dir / f"{stem}_p{pno:03d}.png"
-        page.get_pixmap(dpi=opts.page_dpi).save(out)
+        render(page, out, opts.page_dpi)
         r = page.rect
         chunks.append(
             Chunk(
@@ -99,6 +106,15 @@ def _ingest_page(
             )
         )
     return chunks
+
+
+def render(page: pymupdf.Page, out: Path, dpi: int, clip: Rect | None = None) -> None:
+    """Render a page or region, lowering DPI so the longest side stays under MAX_RENDER_PX.
+    Some manuals embed poster-size wiring diagrams that overflow MuPDF's rasterizer."""
+    rect = pymupdf.Rect(clip) if clip else page.rect
+    longest_in = max(rect.width, rect.height) / 72
+    dpi = max(1, min(dpi, int(MAX_RENDER_PX / max(longest_in, 1e-6))))
+    page.get_pixmap(clip=rect, dpi=dpi).save(out)
 
 
 def _text_chunks(page: pymupdf.Page, source: str) -> list[Chunk]:

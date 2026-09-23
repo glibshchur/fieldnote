@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pymupdf
 
+from fieldnote.ingest.pdf import render
 from fieldnote.types import Chunk
 
 
@@ -31,5 +32,5 @@ def citation_image(chunk: Chunk, manuals_dir: Path, crops_dir: Path, dpi: int = 
         page = doc[chunk.page - 1]
         x0, y0, x1, y1 = chunk.bbox
         clip = pymupdf.Rect(x0 - 12, y0 - 12, x1 + 12, y1 + 12) & page.rect
-        page.get_pixmap(clip=clip, dpi=dpi).save(out)
+        render(page, out, dpi, (clip.x0, clip.y0, clip.x1, clip.y1))
     return str(out)
