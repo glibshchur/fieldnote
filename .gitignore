@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+.env
+
+# Generated
+artifacts/
+.qdrant/
+
+# Corpus: manuals are manufacturer copyright; fetched via `make fetch`
+data/manuals/*.pdf
+data/calls/*
+!data/calls/.gitkeep
+!data/calls/scripts/
+data/photos/*
+!data/photos/.gitkeep
+!data/photos/metadata.csv
+!data/photos/LICENSES.csv
+
+.DS_Store

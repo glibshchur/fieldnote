@@ -1,0 +1,12 @@
+# Corpus manifest. Manuals are not committed; `make fetch` downloads them and
+# verifies the hash. Add one entry per publicly available service manual.
+#
+# manuals:
+#   - file: <short_name>.pdf          # name used in eval gold_sources
+#     url: <public URL of the PDF>
+#     sha256: <filled in after the first fetch>
+#     manufacturer: <name>
+#     model: <equipment model>
+#     why: <which charts/diagrams/tables make it useful>
+
+manuals: []
