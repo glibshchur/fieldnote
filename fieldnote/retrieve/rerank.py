@@ -24,7 +24,12 @@ class RRFOrder:
 
 
 class JinaM0Reranker:
-    def __init__(self, model_name: str = "jinaai/jina-reranker-m0", device: str = "auto"):
+    def __init__(
+        self,
+        model_name: str = "jinaai/jina-reranker-m0",
+        device: str = "auto",
+        revision: str | None = None,
+    ):
         import torch
         from transformers import AutoModel
 
@@ -33,7 +38,9 @@ class JinaM0Reranker:
         dev = resolve_device(device)
         dtype = torch.float16 if dev in ("cuda", "mps") else torch.float32
         self.model = (
-            AutoModel.from_pretrained(model_name, dtype=dtype, trust_remote_code=True)
+            AutoModel.from_pretrained(
+                model_name, dtype=dtype, trust_remote_code=True, revision=revision
+            )
             .to(dev)
             .eval()
         )
@@ -60,9 +67,11 @@ def _as_list(scores) -> list[float]:
     return [scores] if isinstance(scores, float) else list(scores)
 
 
-def make_reranker(kind: str, model_name: str, device: str = "auto") -> Reranker:
+def make_reranker(
+    kind: str, model_name: str, device: str = "auto", revision: str | None = None
+) -> Reranker:
     if kind == "jina":
-        return JinaM0Reranker(model_name, device)
+        return JinaM0Reranker(model_name, device, revision)
     if kind in ("rrf", "none"):
         return RRFOrder()
     raise ValueError(f"unknown reranker: {kind}")

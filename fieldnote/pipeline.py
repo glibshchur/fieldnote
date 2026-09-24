@@ -103,7 +103,12 @@ def load_pipeline(
     return Fieldnote(
         settings,
         ParallelRetriever(store, lanes),
-        make_reranker(reranker or settings.reranker, settings.reranker_model, settings.device),
+        make_reranker(
+            reranker or settings.reranker,
+            settings.reranker_model,
+            settings.device,
+            settings.reranker_revision,
+        ),
         make_llm(settings.llm_provider, settings.answer_model, settings.answer_effort),
         mode,
     )

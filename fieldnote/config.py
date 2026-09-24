@@ -50,6 +50,12 @@ class Settings:
     reranker_model: str = field(
         default_factory=lambda: _env("FIELDNOTE_RERANKER_MODEL", "jinaai/jina-reranker-m0")
     )
+    # jina-reranker-m0 ships custom modeling code (trust_remote_code); pin the reviewed revision.
+    reranker_revision: str = field(
+        default_factory=lambda: _env(
+            "FIELDNOTE_RERANKER_REVISION", "94bfe0aeb2d4dd7978362699cddd5893d4e0adc8"
+        )
+    )
 
     # LLM: provider "anthropic" or "gemini". Models default per provider.
     llm_provider: str = field(default_factory=lambda: _env("FIELDNOTE_LLM_PROVIDER", "anthropic"))

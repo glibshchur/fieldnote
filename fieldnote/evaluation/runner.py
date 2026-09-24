@@ -89,12 +89,22 @@ def run_eval(
     repeats: int = 1,
 ) -> tuple[dict, Path]:
     k_pool = pipe.settings.k_total
-    rows = [evaluate_one(pipe, q, judge, k_pool) for q in questions]
+    rows = []
+    for i, q in enumerate(questions, 1):
+        row = evaluate_one(pipe, q, judge, k_pool)
+        rows.append(row)
+        mark = "ok " if row["correct"] else "MISS"
+        print(
+            f"[{i:>2}/{len(questions)}] {mark} {q.id} {q.category:<14} rank={row['rank']!s:<4} "
+            f"{row['timings']['total_s']:.1f}s",
+            flush=True,
+        )
     # Extra passes only re-measure latency; quality numbers come from the first pass.
     extra_latency = []
-    for _ in range(repeats - 1):
+    for p in range(repeats - 1):
         for q in questions:
             extra_latency.append(pipe.ask(q.question).timings["total_s"])
+        print(f"latency pass {p + 2}/{repeats} done", flush=True)
 
     summary = summarize(rows, k_pool)
     if extra_latency:
@@ -138,3 +148,31 @@ def results_table(results: dict[str, dict], k_pool: int = 20) -> str:
                 f"{a['citation_acc']:.2f} | {s['latency']['p95_s']:.1f}s |"
             )
     return "\n".join(lines)
+
+
+def rescore(results_path: Path, questions: list[Question]) -> tuple[dict, Path]:
+    """Re-apply deterministic scorers (numeric, abstain) to saved answers without new LLM
+    calls. Judge verdicts on free-text answers are kept unless the answer abstained."""
+    from fieldnote.evaluation.scorers import abstained, numeric_correct
+
+    data = json.loads(results_path.read_text())
+    by_id = {q.id: q for q in questions}
+    changed = []
+    for row in data["rows"]:
+        q = by_id[row["id"]]
+        before = row["correct"]
+        if q.answer_type == "abstain":
+            row["correct"] = abstained(row["answer"])
+        elif q.answer_type == "numeric" and q.gold_value is not None:
+            row["correct"] = numeric_correct(row["answer"], q.gold_value, q.tolerance or 0.0)
+        elif abstained(row["answer"]):
+            row["correct"] = False
+        if row["correct"] != before:
+            changed.append(f"{row['id']}: {before} -> {row['correct']}")
+    k_pool = int(data["config"]["k_total"])
+    latency = data["summary"]["latency"]
+    data["summary"] = summarize(data["rows"], k_pool) | {"latency": latency}
+    data["rescored"] = {"at": datetime.now().isoformat(timespec="seconds"), "changed": changed}
+    out = results_path.with_name(results_path.stem + "_rescored.json")
+    out.write_text(json.dumps(data, indent=2))
+    return data["summary"], out

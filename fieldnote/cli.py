@@ -121,6 +121,20 @@ def eval_cmd(
 
 
 @app.command()
+def rescore(results: Path, questions: Path = Path("eval/questions.jsonl")) -> None:
+    """Re-apply deterministic scorers to a saved results file (no LLM calls)."""
+    from fieldnote.evaluation.runner import load_questions
+    from fieldnote.evaluation.runner import rescore as do_rescore
+
+    summary, out = do_rescore(results, load_questions(questions))
+    data = json.loads(out.read_text())
+    for line in data["rescored"]["changed"]:
+        typer.echo(line)
+    typer.echo(json.dumps({k: round(v, 3) for k, v in summary["all"].items()}))
+    typer.echo(f"wrote {out}")
+
+
+@app.command()
 def compare(results: list[Path]) -> None:
     """Print the headline markdown table from two or more results files."""
     from fieldnote.evaluation.runner import results_table

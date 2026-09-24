@@ -36,3 +36,12 @@ def test_numeric_and_abstain():
 def test_percentile():
     assert percentile([1, 2, 3, 4, 5], 50) == 3
     assert percentile([], 95) == 0.0
+
+
+def test_numeric_ignores_references_and_abstentions():
+    # Regression: "Not found ... page 7" was scored correct against gold 7.5 ± 1.5.
+    assert not numeric_correct(
+        "Not found in the provided sources. See Figure 6 on page 7 [S1].", 7.5, 1.5
+    )
+    assert not numeric_correct("Per Fig. 22 [S1, S2] on p.106 the value is unclear", 106, 3)
+    assert numeric_correct("About 7.5°F superheat at 30°F evaporator [S1] (Figure 6).", 7.5, 1.5)
