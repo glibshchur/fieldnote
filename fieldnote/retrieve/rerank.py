@@ -37,6 +37,7 @@ class JinaM0Reranker:
         device: str = "auto",
         revision: str | None = None,
         image_px: int = 640,
+        use_images: bool = True,
     ):
         import torch
         from transformers import AutoModel
@@ -62,6 +63,9 @@ class JinaM0Reranker:
             )
         self.model = model.to(dev).eval()
         self.image_px = image_px
+        # False for the caption-only baseline: image candidates are scored by caption text,
+        # so the baseline never sees pixels anywhere in the pipeline.
+        self.use_images = use_images
 
     def _load(self, path: str):
         """Downscale before scoring: visual tokens grow with pixel count, and relevance
@@ -74,7 +78,11 @@ class JinaM0Reranker:
             return im.copy()
 
     def rerank(self, question: str, candidates: list[Candidate]) -> list[Candidate]:
-        images = [c for c in candidates if c.chunk.modality == "image" and c.chunk.image_path]
+        images = [
+            c
+            for c in candidates
+            if self.use_images and c.chunk.modality == "image" and c.chunk.image_path
+        ]
         texts = [c for c in candidates if c not in images]
         if texts:
             scores = self.model.compute_score(
@@ -103,9 +111,10 @@ def make_reranker(
     device: str = "auto",
     revision: str | None = None,
     image_px: int = 640,
+    use_images: bool = True,
 ) -> Reranker:
     if kind == "jina":
-        return JinaM0Reranker(model_name, device, revision, image_px)
+        return JinaM0Reranker(model_name, device, revision, image_px, use_images)
     if kind in ("rrf", "none"):
         return RRFOrder()
     raise ValueError(f"unknown reranker: {kind}")

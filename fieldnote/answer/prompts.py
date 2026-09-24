@@ -21,3 +21,13 @@ matched to it. Transcribe all visible text, labels, axis titles, units, table \
 headers and cell values, terminal numbers and component names. For charts, name \
 each curve and give representative (x, y) values you can read. For photos, name the \
 component, its condition, and any visible damage. Output plain prose, no preamble."""
+
+
+# Used only when CAPTION_SYSTEM comes back empty (Gemini's recitation filter blocks long
+# verbatim transcription of dense text pages). Same information, prose paraphrased.
+CAPTION_FALLBACK_SYSTEM = """\
+You write search-index descriptions of images from HVAC equipment manuals. Describe what \
+the image shows so a technician's question could be matched to it. List every label, \
+axis title, unit, table header, numeric value, terminal number and component name you can \
+see. Summarize any long passages of prose in your own words instead of copying them. For \
+charts, name each curve and give representative (x, y) values. Output plain prose."""

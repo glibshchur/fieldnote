@@ -90,6 +90,9 @@ def caption(
     workers: int = 16,
     limit: int | None = typer.Option(None, help="pilot: caption at most N new images, no index"),
     include_pages: bool = typer.Option(False, help="also caption full-page renders"),
+    text_fallback: bool = typer.Option(
+        False, help="index still-uncaptioned figures by their own text layer"
+    ),
 ) -> None:
     """Build the caption-only baseline index (captions every figure with the VLM)."""
     from fieldnote.baseline.caption import CaptionCache, build_caption_index, caption_chunks
@@ -102,7 +105,14 @@ def caption(
     # Same model and thinking level as the answer model, so the comparison is like for like.
     llm = make_llm(s.llm_provider, s.caption_model, s.answer_effort)
     captioned, st = caption_chunks(
-        chunks, llm, s.caption_model, cache, workers, include_pages=include_pages, limit=limit
+        chunks,
+        llm,
+        s.caption_model,
+        cache,
+        workers,
+        include_pages=include_pages,
+        limit=limit,
+        fallback_text_layer=text_fallback,
     )
     typer.echo(
         f"images {st.requested}: cached {st.cached}, captioned {st.done}, failed "
@@ -111,6 +121,8 @@ def caption(
     )
     for f in st.failed[:5]:
         typer.echo(f"  failed {f}")
+    if st.text_fallback:
+        typer.echo(f"{st.text_fallback} figures indexed by their text layer (recitation-blocked)")
     if limit is not None:
         return
     missing = sum(1 for c in captioned if c.modality == "image" and not c.text)

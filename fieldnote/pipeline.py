@@ -162,6 +162,7 @@ def load_pipeline(
             settings.device,
             settings.reranker_revision,
             settings.reranker_image_px,
+            use_images=mode == "native",
         ),
         make_llm(settings.llm_provider, settings.answer_model, settings.answer_effort),
         mode,

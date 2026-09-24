@@ -19,7 +19,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from fieldnote.answer.prompts import CAPTION_SYSTEM
+from fieldnote.answer.prompts import CAPTION_FALLBACK_SYSTEM, CAPTION_SYSTEM
 from fieldnote.encoders import TextEncoder
 from fieldnote.index.store import TEXT_VEC, ChunkStore
 from fieldnote.llm import LLM, image_block, text_block
@@ -58,6 +58,7 @@ class CaptionStats:
     input_tokens: int = 0
     output_tokens: int = 0
     seconds: float = 0.0
+    text_fallback: int = 0
 
 
 def caption_chunks(
@@ -68,6 +69,7 @@ def caption_chunks(
     workers: int = 8,
     include_pages: bool = False,
     limit: int | None = None,
+    fallback_text_layer: bool = False,
 ) -> tuple[list[Chunk], CaptionStats]:
     """Return a copy of `chunks` where every image chunk's text is its caption.
 
@@ -87,15 +89,20 @@ def caption_chunks(
 
     def run(c: Chunk) -> None:
         hint = f"Source: {c.source_type} from {c.source}" + (f", page {c.page}" if c.page else "")
+        content = [image_block(c.image_path), text_block(hint)]
+        res = None
         try:
-            res = llm.complete(CAPTION_SYSTEM, [image_block(c.image_path), text_block(hint)], 2048)
+            for system in (CAPTION_SYSTEM, CAPTION_FALLBACK_SYSTEM):
+                res = llm.complete(system, content, 2048)
+                if res.text and res.stop_reason != "refusal":
+                    break
         except Exception as e:  # keep going; the cache makes a rerun pick up the rest
             with lock:
                 stats.failed.append(f"{c.id}: {type(e).__name__}: {e}"[:200])
             return
-        if not res.text or res.stop_reason == "refusal":
+        if res is None or not res.text or res.stop_reason == "refusal":
             with lock:
-                stats.failed.append(f"{c.id}: empty or refused")
+                stats.failed.append(f"{c.id}: empty ({res.stop_reason if res else None})")
             return
         with lock:
             cache.put(keys[c.id], res.text)
@@ -110,7 +117,16 @@ def caption_chunks(
 
     out = []
     for c in kept:
-        out.append(replace(c, text=cache.get(keys[c.id]) or "") if c.id in keys else c)
+        if c.id not in keys:
+            out.append(c)
+        elif caption := cache.get(keys[c.id]):
+            out.append(replace(c, text=caption))
+        elif fallback_text_layer and c.text.strip():
+            # Persistent recitation blocks: index the figure's own text layer instead.
+            out.append(replace(c, metadata={**c.metadata, "caption": "text_layer_fallback"}))
+            stats.text_fallback += 1
+        else:
+            out.append(replace(c, text=""))
     return out, stats
 
 
