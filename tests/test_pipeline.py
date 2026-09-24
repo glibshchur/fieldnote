@@ -152,3 +152,35 @@ def test_gemini_backend_converts_blocks(tmp_path):
     assert parts[0].text == "[S1] manual_figure"
     assert parts[1].inline_data.mime_type == "image/png"
     assert parts[1].inline_data.data[:4] == b"\x89PNG"
+
+
+def test_page_expansion_adds_figures_from_text_pages(tmp_path):
+    from fieldnote.pipeline import expand_page_figures
+
+    text = Chunk("text", "manual_text", "m.pdf", text="Charging chart, Fig. 22", page=22)
+    small = Chunk("image", "manual_figure", "m.pdf", page=22, bbox=(0, 0, 10, 10))
+    big = Chunk("image", "manual_figure", "m.pdf", page=22, bbox=(0, 0, 300, 300))
+    other = Chunk("image", "manual_figure", "m.pdf", page=23, bbox=(0, 0, 300, 300))
+    figs = {("m.pdf", 22): [small, big], ("m.pdf", 23): [other]}
+    lookup = lambda src, page, st: list(figs.get((src, page), []))  # noqa: E731
+
+    added = expand_page_figures([Candidate(text, 1.0, "text")], lookup, limit=1)
+    assert [c.chunk.id for c in added] == [big.id]  # largest figure on the same page first
+    assert added[0].retriever == "page_expansion"
+    # Figures already in the evidence are not duplicated; limit 0 disables expansion.
+    assert [
+        c.chunk.id
+        for c in expand_page_figures(
+            [Candidate(text, 1, "text"), Candidate(big, 1, "image")], lookup, 5
+        )
+    ] == [small.id]
+    assert expand_page_figures([Candidate(text, 1, "text")], lookup, 0) == []
+
+
+def test_store_page_chunks_filters_by_page_and_type(tmp_path):
+    chunks = _corpus(tmp_path)
+    store = ChunkStore(make_client(":memory:"), "t")
+    build_index(store, chunks, HashingTextEncoder(), HashingImageEncoder())
+    figs = store.page_chunks("acme.pdf", 112, "manual_figure")
+    assert len(figs) == 1 and figs[0].page == 112
+    assert store.page_chunks("acme.pdf", 10, "manual_figure") == []

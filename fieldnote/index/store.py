@@ -98,5 +98,23 @@ class ChunkStore:
         )
         return [(Chunk.from_payload(p.payload), float(p.score)) for p in res.points]
 
+    def page_chunks(self, source: str, page: int, source_type: str) -> list[Chunk]:
+        """All chunks of one type on one manual page (payload filter, no vector search)."""
+        points, _ = self.client.scroll(
+            self.collection,
+            scroll_filter=models.Filter(
+                must=[
+                    models.FieldCondition(key="source", match=models.MatchValue(value=source)),
+                    models.FieldCondition(key="page", match=models.MatchValue(value=page)),
+                    models.FieldCondition(
+                        key="source_type", match=models.MatchValue(value=source_type)
+                    ),
+                ]
+            ),
+            limit=32,
+            with_payload=True,
+        )
+        return [Chunk.from_payload(p.payload) for p in points]
+
     def count(self) -> int:
         return self.client.count(self.collection).count

@@ -46,6 +46,15 @@ class Settings:
     k_image: int = field(default_factory=lambda: int(_env("FIELDNOTE_K_IMAGE", "8")))
     k_audio: int = field(default_factory=lambda: int(_env("FIELDNOTE_K_AUDIO", "4")))
     top_n: int = field(default_factory=lambda: int(_env("FIELDNOTE_TOP_N", "5")))
+    # Rerank only the head of the fused list (top 4 per lane): reranking is the latency hot spot.
+    rerank_k: int = field(default_factory=lambda: int(_env("FIELDNOTE_RERANK_K", "12")))
+    reranker_image_px: int = field(
+        default_factory=lambda: int(_env("FIELDNOTE_RERANKER_IMAGE_PX", "640"))
+    )
+    # When a text chunk makes the evidence, also show the figures printed on that page.
+    expand_page_figures: int = field(
+        default_factory=lambda: int(_env("FIELDNOTE_EXPAND_PAGE_FIGURES", "2"))
+    )
     reranker: str = field(default_factory=lambda: _env("FIELDNOTE_RERANKER", "jina"))
     reranker_model: str = field(
         default_factory=lambda: _env("FIELDNOTE_RERANKER_MODEL", "jinaai/jina-reranker-m0")

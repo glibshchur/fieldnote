@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Literal
 
@@ -14,7 +15,7 @@ from fieldnote.llm import LLM
 from fieldnote.retrieve.fuse import rrf_fuse
 from fieldnote.retrieve.rerank import Reranker
 from fieldnote.retrieve.search import ParallelRetriever, caption_lanes, native_lanes
-from fieldnote.types import Candidate
+from fieldnote.types import Candidate, Chunk
 
 Mode = Literal["native", "caption"]
 
@@ -48,7 +49,8 @@ class Fieldnote:
         per_lane = self.retriever.retrieve(question)
         t1 = time.perf_counter()
         fused = rrf_fuse(per_lane)
-        reranked = self.reranker.rerank(question, fused)
+        k = self.settings.rerank_k
+        reranked = self.reranker.rerank(question, fused[:k]) + fused[k:]
         t2 = time.perf_counter()
         return Retrieval(per_lane, fused, reranked, {"search_s": t1 - t0, "rerank_s": t2 - t1})
 
@@ -56,6 +58,10 @@ class Fieldnote:
         t0 = time.perf_counter()
         r = self.last_retrieval = self.retrieve(question)
         evidence = r.reranked[: self.settings.top_n]
+        te = time.perf_counter()
+        evidence = evidence + expand_page_figures(
+            evidence, self.retriever.store.page_chunks, self.settings.expand_page_figures
+        )
         t1 = time.perf_counter()
         text, cited, stop, usage = synthesize(
             self.llm, question, evidence, use_images=self.mode == "native"
@@ -71,8 +77,40 @@ class Fieldnote:
             citations.append(Citation(sid, cand.chunk.citation_label(), cand, img))
 
         timings = dict(r.timings)
-        timings.update({"answer_s": t2 - t1, "total_s": time.perf_counter() - t0})
+        timings.update(
+            {"expand_s": t1 - te, "answer_s": t2 - t1, "total_s": time.perf_counter() - t0}
+        )
         return Answer(question, text, citations, evidence, stop, timings, usage)
+
+
+def expand_page_figures(
+    evidence: list[Candidate], page_chunks: Callable[[str, int, str], list[Chunk]], limit: int
+) -> list[Candidate]:
+    """Sibling expansion: text often wins retrieval for a page whose answer lives in a chart
+    (the chart's title and axis labels are in the text layer, the curve is not). For each
+    text chunk in the evidence, add figure crops from the same page, largest first."""
+    if limit <= 0:
+        return []
+    have = {c.chunk.id for c in evidence}
+    added: list[Candidate] = []
+    for cand in evidence:
+        c = cand.chunk
+        if c.source_type != "manual_text" or c.page is None:
+            continue
+        figures = page_chunks(c.source, c.page, "manual_figure")
+        figures.sort(key=lambda f: -_area(f.bbox))
+        for fig in figures:
+            if fig.id in have:
+                continue
+            have.add(fig.id)
+            added.append(Candidate(chunk=fig, score=0.0, retriever="page_expansion"))
+            if len(added) >= limit:
+                return added
+    return added
+
+
+def _area(bbox) -> float:
+    return (bbox[2] - bbox[0]) * (bbox[3] - bbox[1]) if bbox else 0.0
 
 
 def collection_for(settings: Settings, mode: Mode) -> str:
@@ -108,6 +146,7 @@ def load_pipeline(
             settings.reranker_model,
             settings.device,
             settings.reranker_revision,
+            settings.reranker_image_px,
         ),
         make_llm(settings.llm_provider, settings.answer_model, settings.answer_effort),
         mode,

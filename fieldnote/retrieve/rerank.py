@@ -36,6 +36,7 @@ class JinaM0Reranker:
         model_name: str = "jinaai/jina-reranker-m0",
         device: str = "auto",
         revision: str | None = None,
+        image_px: int = 640,
     ):
         import torch
         from transformers import AutoModel
@@ -60,6 +61,17 @@ class JinaM0Reranker:
                 f"reranker weights failed to load ({len(missing)} missing): {missing[:3]}"
             )
         self.model = model.to(dev).eval()
+        self.image_px = image_px
+
+    def _load(self, path: str):
+        """Downscale before scoring: visual tokens grow with pixel count, and relevance
+        (title, curve labels, layout) survives at 640 px even when exact values do not."""
+        from PIL import Image
+
+        with Image.open(path) as im:
+            im = im.convert("RGB")
+            im.thumbnail((self.image_px, self.image_px))
+            return im.copy()
 
     def rerank(self, question: str, candidates: list[Candidate]) -> list[Candidate]:
         images = [c for c in candidates if c.chunk.modality == "image" and c.chunk.image_path]
@@ -72,7 +84,9 @@ class JinaM0Reranker:
                 c.rerank_score = float(s)
         if images:
             scores = self.model.compute_score(
-                [[question, c.chunk.image_path] for c in images], max_length=2048, doc_type="image"
+                [[question, self._load(c.chunk.image_path)] for c in images],
+                max_length=2048,
+                doc_type="image",
             )
             for c, s in zip(images, _as_list(scores), strict=True):
                 c.rerank_score = float(s)
@@ -84,10 +98,14 @@ def _as_list(scores) -> list[float]:
 
 
 def make_reranker(
-    kind: str, model_name: str, device: str = "auto", revision: str | None = None
+    kind: str,
+    model_name: str,
+    device: str = "auto",
+    revision: str | None = None,
+    image_px: int = 640,
 ) -> Reranker:
     if kind == "jina":
-        return JinaM0Reranker(model_name, device, revision)
+        return JinaM0Reranker(model_name, device, revision, image_px)
     if kind in ("rrf", "none"):
         return RRFOrder()
     raise ValueError(f"unknown reranker: {kind}")

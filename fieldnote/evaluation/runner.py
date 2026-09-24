@@ -31,6 +31,12 @@ def evaluate_one(pipe: Fieldnote, q: Question, judge: LLM | None, k_pool: int) -
     rank = first_relevant_rank(reranked, q.gold_sources)
     pool_hit = first_relevant_rank([c.chunk for c in retrieval.fused], q.gold_sources)
     correct, why = answer_correct(q, ans.text, judge)
+    # For visual-only questions, the gold page only counts if an *image* of it reached the model.
+    evidence_hit = any(
+        matches_gold(c.chunk, g) and (c.chunk.modality == "image" or not q.visual_only)
+        for c in ans.evidence
+        for g in q.gold_sources
+    )
     cited_ok = any(
         matches_gold(c.candidate.chunk, g) for c in ans.citations for g in q.gold_sources
     )
@@ -45,6 +51,7 @@ def evaluate_one(pipe: Fieldnote, q: Question, judge: LLM | None, k_pool: int) -
         "recall@5": recall_at(rank, 5),
         f"recall@{k_pool}": recall_at(pool_hit, k_pool),
         "mrr": reciprocal_rank(rank),
+        "evidence_hit": evidence_hit,
         "correct": correct,
         "judge_note": why,
         "citation_correct": cited_ok,
@@ -63,6 +70,7 @@ def summarize(rows: list[dict], k_pool: int) -> dict:
             "recall@5": sum(r["recall@5"] for r in sub) / n,
             f"recall@{k_pool}": sum(r[f"recall@{k_pool}"] for r in sub) / n,
             "mrr": sum(r["mrr"] for r in sub) / n,
+            "evidence_recall": sum(r.get("evidence_hit", False) for r in sub) / n,
             "answer_acc": sum(r["correct"] for r in sub) / n,
             "citation_acc": sum(r["citation_correct"] for r in sub) / n,
             "cited_rate": sum(r["has_citation"] for r in sub) / n,
@@ -136,7 +144,7 @@ def run_eval(
 def results_table(results: dict[str, dict], k_pool: int = 20) -> str:
     """Markdown table comparing systems: visual-only slice first, then all questions."""
     lines = [
-        f"| System | Slice | n | Recall@5 | Recall@{k_pool} | MRR "
+        f"| System | Slice | n | Recall@5 | Recall@{k_pool} | Evidence recall "
         "| Answer acc. | Citation acc. | p95 latency |",
         "|---|---|---|---|---|---|---|---|---|",
     ]
@@ -146,7 +154,8 @@ def results_table(results: dict[str, dict], k_pool: int = 20) -> str:
             a = s[slice_name]
             lines.append(
                 f"| {name} | {slice_name.replace('_', '-')} | {a['n']} | {a['recall@5']:.2f} | "
-                f"{a.get(f'recall@{k_pool}', 0):.2f} | {a['mrr']:.2f} | {a['answer_acc']:.2f} | "
+                f"{a.get(f'recall@{k_pool}', 0):.2f} | {a.get('evidence_recall', 0):.2f} | "
+                f"{a['answer_acc']:.2f} | "
                 f"{a['citation_acc']:.2f} | {s['latency']['p95_s']:.1f}s |"
             )
     return "\n".join(lines)
