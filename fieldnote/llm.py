@@ -135,7 +135,10 @@ class GeminiLLM:
             text=(resp.text or "").strip(),
             stop_reason=finish_name,
             input_tokens=(usage.prompt_token_count or 0) if usage else 0,
-            output_tokens=(usage.candidates_token_count or 0) if usage else 0,
+            # Thinking tokens are billed as output.
+            output_tokens=((usage.candidates_token_count or 0) + (usage.thoughts_token_count or 0))
+            if usage
+            else 0,
         )
 
 

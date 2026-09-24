@@ -58,22 +58,43 @@ def index() -> None:
 
 
 @app.command()
-def caption(workers: int = 8) -> None:
-    """Build the caption-only baseline index (captions every image with a VLM)."""
+def caption(
+    workers: int = 16,
+    limit: int | None = typer.Option(None, help="pilot: caption at most N new images, no index"),
+    include_pages: bool = typer.Option(False, help="also caption full-page renders"),
+) -> None:
+    """Build the caption-only baseline index (captions every figure with the VLM)."""
     from fieldnote.baseline.caption import CaptionCache, build_caption_index, caption_chunks
-    from fieldnote.encoders.text import SentenceTransformerEncoder
-    from fieldnote.index import ChunkStore
-    from fieldnote.index.store import make_client
     from fieldnote.ingest import load_chunks
     from fieldnote.llm import make_llm
-    from fieldnote.pipeline import collection_for
 
     s = get_settings()
     chunks = load_chunks(s.artifacts_dir / CHUNKS_FILE)
     cache = CaptionCache(s.artifacts_dir / "captions.jsonl")
-    captioned = caption_chunks(
-        chunks, make_llm(s.llm_provider, s.caption_model), s.caption_model, cache, workers
+    # Same model and thinking level as the answer model, so the comparison is like for like.
+    llm = make_llm(s.llm_provider, s.caption_model, s.answer_effort)
+    captioned, st = caption_chunks(
+        chunks, llm, s.caption_model, cache, workers, include_pages=include_pages, limit=limit
     )
+    typer.echo(
+        f"images {st.requested}: cached {st.cached}, captioned {st.done}, failed "
+        f"{len(st.failed)} in {st.seconds:.0f}s | tokens in {st.input_tokens:,} "
+        f"out {st.output_tokens:,}"
+    )
+    for f in st.failed[:5]:
+        typer.echo(f"  failed {f}")
+    if limit is not None:
+        return
+    missing = sum(1 for c in captioned if c.modality == "image" and not c.text)
+    if missing:
+        typer.echo(f"{missing} images still uncaptioned; rerun to retry before indexing")
+        raise typer.Exit(1)
+
+    from fieldnote.encoders.text import SentenceTransformerEncoder
+    from fieldnote.index import ChunkStore
+    from fieldnote.index.store import make_client
+    from fieldnote.pipeline import collection_for
+
     store = ChunkStore(make_client(s.qdrant_path, s.qdrant_url), collection_for(s, "caption"))
     n = build_caption_index(store, captioned, SentenceTransformerEncoder(s.text_model, s.device))
     typer.echo(f"indexed {n} chunks into '{store.collection}'")

@@ -84,7 +84,10 @@ def test_native_mode_sends_pixels_and_maps_citations(settings, tmp_path):
 def test_caption_mode_never_sends_images(settings, tmp_path):
     chunks = _corpus(tmp_path)
     cap_llm = ScriptedLLM(["Chart of discharge pressure vs ambient.", "Burnt contactor."])
-    captioned = caption_chunks(chunks, cap_llm, "m", CaptionCache(tmp_path / "c.jsonl"), workers=1)
+    captioned, stats = caption_chunks(
+        chunks, cap_llm, "m", CaptionCache(tmp_path / "c.jsonl"), workers=1
+    )
+    assert stats.done == 2 and not stats.failed
     assert all(c.text for c in captioned if c.modality == "image")
 
     llm = ScriptedLLM(["Not found in the provided sources."])
@@ -184,3 +187,19 @@ def test_store_page_chunks_filters_by_page_and_type(tmp_path):
     figs = store.page_chunks("acme.pdf", 112, "manual_figure")
     assert len(figs) == 1 and figs[0].page == 112
     assert store.page_chunks("acme.pdf", 10, "manual_figure") == []
+
+
+def test_caption_failures_are_skipped_and_resumable(tmp_path):
+    class FlakyLLM(ScriptedLLM):
+        def complete(self, system, content, max_tokens=2048):
+            if not self.calls:
+                self.calls.append((system, content))
+                raise TimeoutError("network dropped")
+            return super().complete(system, content, max_tokens)
+
+    chunks = _corpus(tmp_path)
+    cache = CaptionCache(tmp_path / "c.jsonl")
+    _, first = caption_chunks(chunks, FlakyLLM(["caption b"]), "m", cache, workers=1)
+    assert first.done == 1 and len(first.failed) == 1
+    _, second = caption_chunks(chunks, ScriptedLLM(["caption a"]), "m", cache, workers=1)
+    assert second.cached == 1 and second.done == 1  # only the failed image is retried
