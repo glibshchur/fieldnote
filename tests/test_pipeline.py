@@ -234,3 +234,17 @@ def test_custom_search_lane(settings, tmp_path):
     lane = Lane("page", "", ("image",), 3, search=lambda q, k: [(page, 0.9)])
     out = ParallelRetriever(store, [lane]).retrieve("anything")
     assert out["page"][0].chunk.id == page.id and out["page"][0].rank == 1
+
+
+def test_shared_encoder_embeds_once_per_question(settings, tmp_path):
+    calls = []
+
+    class CountingEncoder(HashingTextEncoder):
+        def encode_queries(self, texts):
+            calls.append(texts)
+            return super().encode_queries(texts)
+
+    store = ChunkStore(make_client(":memory:"), "t")
+    build_caption_index(store, _corpus(tmp_path), HashingTextEncoder())
+    ParallelRetriever(store, caption_lanes(CountingEncoder(), 2, 2, 1)).retrieve("q")
+    assert len(calls) == 1  # three lanes, one shared encoder, one embedding

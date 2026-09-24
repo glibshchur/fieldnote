@@ -29,11 +29,11 @@ class ParallelRetriever:
         self.lanes = [lane for lane in lanes if lane.k > 0]
         self._pool = ThreadPoolExecutor(max_workers=max(1, len(self.lanes)))
 
-    def _run_lane(self, lane: Lane, question: str) -> list[Candidate]:
+    def _run_lane(self, lane: Lane, question: str, vecs: dict[int, np.ndarray]) -> list[Candidate]:
         if lane.search is not None:
             hits = lane.search(question, lane.k)
         else:
-            vec = lane.embed_query(question)
+            vec = vecs[id(lane.embed_query)]
             hits = self.store.search(lane.vector_name, vec, lane.k, modalities=lane.modalities)
         return [
             Candidate(chunk=c, score=s, retriever=lane.name, rank=r)
@@ -41,8 +41,16 @@ class ParallelRetriever:
         ]
 
     def retrieve(self, question: str) -> dict[str, list[Candidate]]:
+        # Embed the question once per encoder, on this thread. Lanes share encoders (text and
+        # audio both use BGE), and calling one torch model from several threads on MPS
+        # segfaults. The vector searches themselves still run in parallel.
+        vecs: dict[int, np.ndarray] = {}
+        for lane in self.lanes:
+            if lane.search is None and id(lane.embed_query) not in vecs:
+                vecs[id(lane.embed_query)] = lane.embed_query(question)
         futures = {
-            lane.name: self._pool.submit(self._run_lane, lane, question) for lane in self.lanes
+            lane.name: self._pool.submit(self._run_lane, lane, question, vecs)
+            for lane in self.lanes
         }
         return {name: f.result() for name, f in futures.items()}
 
