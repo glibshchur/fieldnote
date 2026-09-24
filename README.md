@@ -7,19 +7,35 @@ of a failed contactor. It also searches recorded manufacturer support calls.
 > A tech on a roof asks why unit 7 keeps tripping on high pressure. The answer lives in a chart,
 > not in a paragraph.
 
-**Status:** pipeline, baseline and eval harness are built and tested. The corpus and the
-40-question eval set come next. The results table below gets filled from real runs, never by hand.
+**Status:** pipeline, corpus (40 public manuals, 3,445 pages), 40-question eval set and
+TTS support calls are built. The caption-only baseline run is next. Every number below comes
+from a results file in `eval/results/`; none are typed by hand.
 
-## Results
+## Results so far
 
-| System | Slice | Recall@5 | Answer acc. | Citation acc. | p95 latency |
-|---|---|---|---|---|---|
-| Caption-only baseline | 15 visual-only questions | pending | pending | pending | pending |
-| **Fieldnote** | 15 visual-only questions | pending | pending | pending | pending |
-| Caption-only baseline | all 40 | pending | pending | pending | pending |
-| **Fieldnote** | all 40 | pending | pending | pending | pending |
+Fieldnote on all 40 questions, answer model `gemini-3.8-flash`:
 
-Generated with `make compare` from files in `eval/results/`.
+| Iteration | Recall@5 | Answer acc. (all 40) | Answer acc. (15 visual-only) | p95 latency |
+|---|---|---|---|---|
+| Parallel search + RRF | 0.50 | 0.30 | 0.13 | 5.2 s |
+| + multimodal reranker (jina-reranker-m0) | 0.80 | 0.65 | 0.33* | 9.7 s |
+| + page-figure expansion, capped rerank pool | 0.80 | **0.75** | **0.53** | 6.2 s |
+
+\* included one question later found to leak as text elsewhere in the corpus; it was replaced
+(see `eval/README.md`).
+
+What the numbers say:
+- **When the gold chart reaches the model, it answers correctly (8 of 8).** Every remaining
+  visual miss (7 of 7) is a retrieval miss. Image retrieval over dense diagrams is the
+  bottleneck, not the answer model. Next: a ColQwen2 page-image index.
+- **Page-figure expansion** fixed chart questions (0.25 to 0.75): text retrieval finds the right
+  page through the chart's title and axis labels, but the curve only exists in the image, so
+  the page's figures now ride along with the text.
+- **The reranker** moved the right support-call segment into the top 5 every time
+  (audio 0.14 to 0.86, cross-modal 0.00 to 1.00).
+- p95 latency is 0.2 s over the 6 s target; reranking and answering are the two big costs.
+
+The headline comparison against the caption-only baseline lands here once that run is done.
 
 ## The trap this project avoids
 
@@ -67,7 +83,7 @@ every value it can see. That makes it a strong baseline, not a straw man.
 | Speech | faster-whisper |
 | Vector store | Qdrant (local mode, or server via `docker compose`) |
 | Reranker | `jinaai/jina-reranker-m0` |
-| Answer model | Claude (`claude-opus-5`, low effort for latency), vision input |
+| Answer model | `gemini-3.8-flash` (current runs) or Claude `claude-opus-5`, vision input, switchable via `FIELDNOTE_LLM_PROVIDER` |
 
 All model choices are environment variables; see `fieldnote/config.py`.
 
