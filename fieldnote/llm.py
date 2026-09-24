@@ -75,8 +75,16 @@ class GeminiLLM:
         import os
 
         from google import genai
+        from google.genai import types
 
-        self.client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+        # Without a timeout a dropped connection (e.g. a Wi-Fi switch) hangs the eval forever.
+        self.client = genai.Client(
+            api_key=os.environ.get("GEMINI_API_KEY"),
+            http_options=types.HttpOptions(
+                timeout=60_000,  # ms
+                retry_options=types.HttpRetryOptions(attempts=4, initial_delay=2.0, max_delay=30.0),
+            ),
+        )
         self.model = model
         self.thinking_level = thinking_level
         # Charts need the high-resolution image tokenizer; low loses axis tick labels.

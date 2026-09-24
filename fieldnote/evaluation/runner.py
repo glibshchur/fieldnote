@@ -99,22 +99,6 @@ def run_eval(
             f"{row['timings']['total_s']:.1f}s",
             flush=True,
         )
-    # Extra passes only re-measure latency; quality numbers come from the first pass.
-    extra_latency = []
-    for p in range(repeats - 1):
-        for q in questions:
-            extra_latency.append(pipe.ask(q.question).timings["total_s"])
-        print(f"latency pass {p + 2}/{repeats} done", flush=True)
-
-    summary = summarize(rows, k_pool)
-    if extra_latency:
-        all_lat = [r["timings"]["total_s"] for r in rows] + extra_latency
-        summary["latency"] = {
-            "p50_s": percentile(all_lat, 50),
-            "p95_s": percentile(all_lat, 95),
-            "samples": len(all_lat),
-        }
-
     out_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     out = out_dir / f"{stamp}_{system_name}.json"
@@ -123,11 +107,29 @@ def run_eval(
         "reranker": type(pipe.reranker).__name__,
         "k_total": str(k_pool),
     }
-    out.write_text(
-        json.dumps(
-            {"system": system_name, "config": config, "summary": summary, "rows": rows}, indent=2
-        )
-    )
+
+    def save(summary: dict) -> None:
+        record = {"system": system_name, "config": config, "summary": summary, "rows": rows}
+        out.write_text(json.dumps(record, indent=2))
+
+    # Save quality results now so a failure in the latency passes can't lose them.
+    summary = summarize(rows, k_pool)
+    save(summary)
+
+    # Extra passes only re-measure latency; quality numbers come from the first pass.
+    extra_latency = []
+    for p in range(repeats - 1):
+        for q in questions:
+            extra_latency.append(pipe.ask(q.question).timings["total_s"])
+        print(f"latency pass {p + 2}/{repeats} done", flush=True)
+    if extra_latency:
+        all_lat = [r["timings"]["total_s"] for r in rows] + extra_latency
+        summary["latency"] = {
+            "p50_s": percentile(all_lat, 50),
+            "p95_s": percentile(all_lat, 95),
+            "samples": len(all_lat),
+        }
+        save(summary)
     return summary, out
 
 
