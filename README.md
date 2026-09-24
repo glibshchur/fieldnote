@@ -35,7 +35,29 @@ What the numbers say:
   (audio 0.14 to 0.86, cross-modal 0.00 to 1.00).
 - p95 latency is 0.2 s over the 6 s target; reranking and answering are the two big costs.
 
-The headline comparison against the caption-only baseline lands here once that run is done.
+### Head to head: caption-only baseline vs Fieldnote
+
+Same corpus, questions, reranker (scoring caption text in baseline mode), page expansion and
+answer model. The baseline captions every figure with `gemini-3.8-flash` (told to transcribe
+labels and read curve values) and never sends pixels anywhere.
+
+| System | Visual-only acc. (15) | Charts (8) | Diagrams / image tables (7) | All 40 | p95 latency |
+|---|---|---|---|---|---|
+| Caption-only baseline | 0.47 | 0.50 | **0.43** | 0.38 | **3.5 s** |
+| Fieldnote | **0.53** | **0.75** | 0.29 | **0.75** | 6.2 s |
+
+What it actually shows (the honest version):
+- **Reading: pixels beat captions.** With the gold evidence in hand, Fieldnote answered 8/8 from
+  the image; the baseline answered 7/10 from captions. Captions dropped or misread the value
+  the question needed (e.g. a charging chart read as 116 °F instead of 106 °F).
+- **Retrieval: captions beat SigLIP on text-dense diagrams.** Captions transcribe the words
+  printed inside schematics and image-only tables, so text search finds them; a single SigLIP
+  vector per image does not. That is the gap the ColQwen2.5 page lane targets.
+- **Most of the all-40 gap is not about vision.** Long captions win ~38% of the top-5 evidence
+  slots even on text and audio questions, crowding out support-call segments. Real, but a
+  property of caption pipelines, not proof that native vision is better.
+- On the 15 visual-only questions the margin is small (0.53 vs 0.47). Not yet the clear win
+  the project is after.
 
 ## The trap this project avoids
 
