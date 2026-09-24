@@ -16,7 +16,7 @@ def _env(name: str, default: str) -> str:
     return os.environ.get(name, default)
 
 
-DEFAULT_MODELS = {"anthropic": "claude-opus-5", "gemini": "gemini-2.5-flash"}
+DEFAULT_MODELS = {"anthropic": "claude-opus-5", "gemini": "gemini-3.8-flash"}
 
 
 @dataclass(frozen=True)

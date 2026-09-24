@@ -104,7 +104,10 @@ class GeminiLLM:
         from google.genai import types
 
         config = types.GenerateContentConfig(
-            system_instruction=system, max_output_tokens=max_tokens
+            system_instruction=system,
+            max_output_tokens=max_tokens,
+            # Plain generation: no tools, so skip the SDK's automatic function calling.
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
         )
         if self.thinking_level:
             config.thinking_config = types.ThinkingConfig(
