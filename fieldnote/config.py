@@ -45,6 +45,11 @@ class Settings:
     k_text: int = field(default_factory=lambda: int(_env("FIELDNOTE_K_TEXT", "8")))
     k_image: int = field(default_factory=lambda: int(_env("FIELDNOTE_K_IMAGE", "8")))
     k_audio: int = field(default_factory=lambda: int(_env("FIELDNOTE_K_AUDIO", "4")))
+    # Page lane (ColQwen2.5 multi-vector); used when artifacts/colqwen exists.
+    k_page: int = field(default_factory=lambda: int(_env("FIELDNOTE_K_PAGE", "6")))
+    page_model: str = field(
+        default_factory=lambda: _env("FIELDNOTE_PAGE_MODEL", "vidore/colqwen2.5-v0.2")
+    )
     top_n: int = field(default_factory=lambda: int(_env("FIELDNOTE_TOP_N", "5")))
     # Rerank only the head of the fused list (top 4 per lane): reranking is the latency hot spot.
     rerank_k: int = field(default_factory=lambda: int(_env("FIELDNOTE_RERANK_K", "12")))
@@ -81,7 +86,12 @@ class Settings:
 
     @property
     def k_total(self) -> int:
-        return self.k_text + self.k_image + self.k_audio
+        pages = self.k_page if (self.page_index_dir / "pages.pt").exists() else 0
+        return self.k_text + self.k_image + self.k_audio + pages
+
+    @property
+    def page_index_dir(self) -> Path:
+        return self.artifacts_dir / "colqwen"
 
     @property
     def crops_dir(self) -> Path:

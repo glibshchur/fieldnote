@@ -57,6 +57,34 @@ def index() -> None:
     typer.echo(f"indexed {counts} into '{s.collection}'")
 
 
+@app.command("index-pages")
+def index_pages(batch_size: int = 4) -> None:
+    """Build the ColQwen2.5 multi-vector page index (artifacts/colqwen)."""
+    import time
+
+    from fieldnote.encoders.colpali import ColQwenEncoder
+    from fieldnote.index.pages import PageIndex
+    from fieldnote.ingest import load_chunks
+
+    s = get_settings()
+    pages = [
+        c for c in load_chunks(s.artifacts_dir / CHUNKS_FILE) if c.source_type == "manual_page"
+    ]
+    enc = ColQwenEncoder(s.page_model, s.device)
+    t0 = time.perf_counter()
+    from tqdm import tqdm
+
+    embs = []
+    for i in tqdm(range(0, len(pages), 64), desc="pages x64"):
+        embs.extend(enc.encode_pages([c.image_path for c in pages[i : i + 64]], batch_size))
+    PageIndex.build(pages, embs).save(s.page_index_dir)
+    avg = sum(e.shape[0] for e in embs) / len(embs)
+    typer.echo(
+        f"indexed {len(pages)} pages ({avg:.0f} patch vectors each) in "
+        f"{time.perf_counter() - t0:.0f}s -> {s.page_index_dir}"
+    )
+
+
 @app.command()
 def caption(
     workers: int = 16,

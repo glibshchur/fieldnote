@@ -9,16 +9,18 @@ from dataclasses import dataclass
 import numpy as np
 
 from fieldnote.index.store import IMAGE_VEC, TEXT_VEC, ChunkStore
-from fieldnote.types import Candidate
+from fieldnote.types import Candidate, Chunk
 
 
 @dataclass
 class Lane:
-    name: str  # "text", "image", "audio"
+    name: str  # "text", "image", "audio", "page"
     vector_name: str
     modalities: tuple[str, ...]
     k: int
-    embed_query: Callable[[str], np.ndarray]
+    embed_query: Callable[[str], np.ndarray] | None = None
+    # A lane can bring its own search (e.g. the multi-vector page index) instead of Qdrant.
+    search: Callable[[str, int], list[tuple[Chunk, float]]] | None = None
 
 
 class ParallelRetriever:
@@ -28,8 +30,11 @@ class ParallelRetriever:
         self._pool = ThreadPoolExecutor(max_workers=max(1, len(self.lanes)))
 
     def _run_lane(self, lane: Lane, question: str) -> list[Candidate]:
-        vec = lane.embed_query(question)
-        hits = self.store.search(lane.vector_name, vec, lane.k, modalities=lane.modalities)
+        if lane.search is not None:
+            hits = lane.search(question, lane.k)
+        else:
+            vec = lane.embed_query(question)
+            hits = self.store.search(lane.vector_name, vec, lane.k, modalities=lane.modalities)
         return [
             Candidate(chunk=c, score=s, retriever=lane.name, rank=r)
             for r, (c, s) in enumerate(hits, start=1)
@@ -53,6 +58,15 @@ def native_lanes(
         Lane("image", IMAGE_VEC, ("image",), k_image, embed_image),
         Lane("audio", TEXT_VEC, ("audio",), k_audio, embed_text),
     ]
+
+
+def page_lane(page_index, page_encoder, k: int, device: str) -> Lane:
+    """Late-interaction page retrieval (ColQwen2.5 + MaxSim) over full-page renders."""
+
+    def search(question: str, k: int) -> list[tuple[Chunk, float]]:
+        return page_index.search(page_encoder.encode_queries([question])[0], k, device)
+
+    return Lane("page", "", ("image",), k, search=search)
 
 
 def caption_lanes(text_encoder, k_text: int, k_image: int, k_audio: int) -> list[Lane]:

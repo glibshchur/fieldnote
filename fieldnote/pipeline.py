@@ -95,7 +95,8 @@ def expand_page_figures(
     added: list[Candidate] = []
     for cand in evidence:
         c = cand.chunk
-        if c.source_type != "manual_text" or c.page is None:
+        # Text chunks and page renders both point at a page whose crops are sharper evidence.
+        if c.source_type not in ("manual_text", "manual_page") or c.page is None:
             continue
         figures = page_chunks(c.source, c.page, "manual_figure")
         figures.sort(key=lambda f: -_area(f.bbox))
@@ -136,6 +137,20 @@ def load_pipeline(
         lanes = native_lanes(
             text_enc, image_enc, settings.k_text, settings.k_image, settings.k_audio
         )
+        if settings.k_page > 0 and (settings.page_index_dir / "pages.pt").exists():
+            from fieldnote.encoders.colpali import ColQwenEncoder
+            from fieldnote.index.pages import PageIndex
+            from fieldnote.retrieve.search import page_lane
+
+            page_enc = ColQwenEncoder(settings.page_model, settings.device)
+            lanes.append(
+                page_lane(
+                    PageIndex.load(settings.page_index_dir),
+                    page_enc,
+                    settings.k_page,
+                    page_enc.device,
+                )
+            )
     else:
         lanes = caption_lanes(text_enc, settings.k_text, settings.k_image, settings.k_audio)
     return Fieldnote(

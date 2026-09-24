@@ -203,3 +203,34 @@ def test_caption_failures_are_skipped_and_resumable(tmp_path):
     assert first.done == 1 and len(first.failed) == 1
     _, second = caption_chunks(chunks, ScriptedLLM(["caption a"]), "m", cache, workers=1)
     assert second.cached == 1 and second.done == 1  # only the failed image is retried
+
+
+def test_page_index_maxsim_and_roundtrip(tmp_path):
+    import torch
+
+    from fieldnote.index.pages import PageIndex
+
+    a = Chunk("image", "manual_page", "m.pdf", page=1)
+    b = Chunk("image", "manual_page", "m.pdf", page=2)
+    e = torch.eye(4, dtype=torch.float16)
+    # page a has patches matching query tokens 0 and 1; page b only token 2 (and is shorter)
+    idx = PageIndex.build([a, b], [e[[0, 1, 3]], e[[2]]])
+    hits = idx.search(e[[0, 1]], k=2)
+    assert hits[0][0].id == a.id and hits[0][1] == 2.0
+    # Page a is one patch long; its zero padding must not beat its real -1 similarity.
+    padded = PageIndex.build([a, b], [-e[[0]], e[[1, 2, 3]]])
+    assert padded.maxsim(e[[0]])[0].item() == -1.0
+    idx.save(tmp_path / "pi")
+    again = PageIndex.load(tmp_path / "pi")
+    assert [c.id for c, _ in again.search(e[[2]], k=1)] == [b.id]
+
+
+def test_custom_search_lane(settings, tmp_path):
+    from fieldnote.retrieve.search import Lane
+
+    page = Chunk("image", "manual_page", "m.pdf", page=7)
+    store = ChunkStore(make_client(":memory:"), "t")
+    build_index(store, _corpus(tmp_path), HashingTextEncoder(), HashingImageEncoder())
+    lane = Lane("page", "", ("image",), 3, search=lambda q, k: [(page, 0.9)])
+    out = ParallelRetriever(store, [lane]).retrieve("anything")
+    assert out["page"][0].chunk.id == page.id and out["page"][0].rank == 1
