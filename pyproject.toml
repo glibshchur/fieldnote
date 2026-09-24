@@ -24,6 +24,7 @@ dependencies = [
 [project.optional-dependencies]
 # Heavy model dependencies are kept out of the core install so CI stays fast.
 ml = [
+    "colpali-engine>=0.3.18",
     "faster-whisper>=1.0",
     "protobuf>=5",
     "sentence-transformers>=3.0",
