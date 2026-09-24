@@ -12,6 +12,12 @@ from PIL import Image
 from fieldnote.encoders import l2_normalize, resolve_device
 
 
+def _embeds(out):
+    """transformers <5 returns a tensor; >=5 returns an output object whose
+    pooler_output is the projected embedding (verified equal to the forward pass)."""
+    return out if hasattr(out, "float") else out.pooler_output
+
+
 class SiglipEncoder:
     def __init__(self, model_name: str, device: str = "auto", batch_size: int = 16):
         import torch
@@ -35,7 +41,7 @@ class SiglipEncoder:
             inputs = self.processor(images=images, return_tensors="pt").to(self.device)
             inputs["pixel_values"] = inputs["pixel_values"].to(self.model.dtype)
             with self.torch.no_grad():
-                feats = self.model.get_image_features(**inputs)
+                feats = _embeds(self.model.get_image_features(**inputs))
             out.append(feats.float().cpu().numpy())
         return l2_normalize(np.concatenate(out)) if out else np.zeros((0, self.dim))
 
@@ -45,5 +51,5 @@ class SiglipEncoder:
             text=texts, padding="max_length", truncation=True, return_tensors="pt"
         ).to(self.device)
         with self.torch.no_grad():
-            feats = self.model.get_text_features(**inputs)
+            feats = _embeds(self.model.get_text_features(**inputs))
         return l2_normalize(feats.float().cpu().numpy())
