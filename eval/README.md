@@ -15,6 +15,15 @@ calls. Every gold source is checked by hand.
 
 A category starting with `visual` counts toward the 15 visual-only questions.
 
+## Visual-only audit
+
+A visual-only question counts only if its answer cannot be found as text **anywhere in the
+corpus**, not just on the gold page. For each one: read the answer off the render
+(`scripts/qtools.py render/crop`), then search every manual's text layer for the equipment
+identifier together with the answer. On 2026-09-24 this audit retired the original q12 (a
+CoreSense run-time limit shown as an image in the Goodman manual but stated as plain text in
+the Copeland bulletin). It is kept in `reserve.jsonl` with `kind: retired`.
+
 ## Schema
 
 ```json
