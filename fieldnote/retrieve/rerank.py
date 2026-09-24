@@ -16,6 +16,13 @@ class Reranker(Protocol):
     def rerank(self, question: str, candidates: list[Candidate]) -> list[Candidate]: ...
 
 
+QWEN2VL_KEY_MAPPING = {
+    r"^model\.layers\.": "model.language_model.layers.",
+    r"^model\.embed_tokens": "model.language_model.embed_tokens",
+    r"^model\.norm": "model.language_model.norm",
+}
+
+
 class RRFOrder:
     """No model: keep the fused order."""
 
@@ -37,13 +44,22 @@ class JinaM0Reranker:
 
         dev = resolve_device(device)
         dtype = torch.float16 if dev in ("cuda", "mps") else torch.float32
-        self.model = (
-            AutoModel.from_pretrained(
-                model_name, dtype=dtype, trust_remote_code=True, revision=revision
-            )
-            .to(dev)
-            .eval()
+        # transformers 5 renamed Qwen2-VL modules (model.layers -> model.language_model.layers).
+        # Without this mapping the whole language model silently loads as random weights.
+        model, info = AutoModel.from_pretrained(
+            model_name,
+            dtype=dtype,
+            trust_remote_code=True,
+            revision=revision,
+            key_mapping=QWEN2VL_KEY_MAPPING,
+            output_loading_info=True,
         )
+        missing = [k for k in info.get("missing_keys", []) if "lm_head" not in k]
+        if missing:
+            raise RuntimeError(
+                f"reranker weights failed to load ({len(missing)} missing): {missing[:3]}"
+            )
+        self.model = model.to(dev).eval()
 
     def rerank(self, question: str, candidates: list[Candidate]) -> list[Candidate]:
         images = [c for c in candidates if c.chunk.modality == "image" and c.chunk.image_path]
