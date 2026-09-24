@@ -8,10 +8,12 @@ license = { text = "MIT" }
 dependencies = [
     "anthropic>=0.70",
     "fastapi>=0.115",
+    "google-genai>=1.30",
     "numpy>=1.26",
     "pillow>=10.0",
     "pydantic>=2.7",
     "pymupdf>=1.24",
+    "python-dotenv>=1.0",
     "pyyaml>=6.0",
     "qdrant-client>=1.12",
     "truststore>=0.10",

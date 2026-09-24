@@ -84,7 +84,7 @@ def load_pipeline(
 ) -> Fieldnote:
     """Build the real pipeline with model-backed encoders (needs the `ml` extra)."""
     from fieldnote.encoders.text import SentenceTransformerEncoder
-    from fieldnote.llm import ClaudeLLM
+    from fieldnote.llm import make_llm
     from fieldnote.retrieve.rerank import make_reranker
 
     store = ChunkStore(
@@ -104,6 +104,6 @@ def load_pipeline(
         settings,
         ParallelRetriever(store, lanes),
         make_reranker(reranker or settings.reranker, settings.reranker_model, settings.device),
-        ClaudeLLM(settings.answer_model, settings.answer_effort),
+        make_llm(settings.llm_provider, settings.answer_model, settings.answer_effort),
         mode,
     )

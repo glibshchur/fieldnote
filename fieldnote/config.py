@@ -6,9 +6,17 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+# Local secrets and overrides live in .env (gitignored); real env vars take precedence.
+load_dotenv(override=False)
+
 
 def _env(name: str, default: str) -> str:
     return os.environ.get(name, default)
+
+
+DEFAULT_MODELS = {"anthropic": "claude-opus-5", "gemini": "gemini-2.5-flash"}
 
 
 @dataclass(frozen=True)
@@ -43,15 +51,18 @@ class Settings:
         default_factory=lambda: _env("FIELDNOTE_RERANKER_MODEL", "jinaai/jina-reranker-m0")
     )
 
-    # LLM
-    answer_model: str = field(
-        default_factory=lambda: _env("FIELDNOTE_ANSWER_MODEL", "claude-opus-5")
-    )
+    # LLM: provider "anthropic" or "gemini". Models default per provider.
+    llm_provider: str = field(default_factory=lambda: _env("FIELDNOTE_LLM_PROVIDER", "anthropic"))
+    answer_model: str = field(default_factory=lambda: _env("FIELDNOTE_ANSWER_MODEL", ""))
     answer_effort: str = field(default_factory=lambda: _env("FIELDNOTE_ANSWER_EFFORT", "low"))
-    caption_model: str = field(
-        default_factory=lambda: _env("FIELDNOTE_CAPTION_MODEL", "claude-opus-5")
-    )
-    judge_model: str = field(default_factory=lambda: _env("FIELDNOTE_JUDGE_MODEL", "claude-opus-5"))
+    caption_model: str = field(default_factory=lambda: _env("FIELDNOTE_CAPTION_MODEL", ""))
+    judge_model: str = field(default_factory=lambda: _env("FIELDNOTE_JUDGE_MODEL", ""))
+
+    def __post_init__(self) -> None:
+        default = DEFAULT_MODELS.get(self.llm_provider, "")
+        for name in ("answer_model", "caption_model", "judge_model"):
+            if not getattr(self, name):
+                object.__setattr__(self, name, default)
 
     @property
     def k_total(self) -> int:

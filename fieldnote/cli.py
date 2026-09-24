@@ -65,13 +65,15 @@ def caption(workers: int = 8) -> None:
     from fieldnote.index import ChunkStore
     from fieldnote.index.store import make_client
     from fieldnote.ingest import load_chunks
-    from fieldnote.llm import ClaudeLLM
+    from fieldnote.llm import make_llm
     from fieldnote.pipeline import collection_for
 
     s = get_settings()
     chunks = load_chunks(s.artifacts_dir / CHUNKS_FILE)
     cache = CaptionCache(s.artifacts_dir / "captions.jsonl")
-    captioned = caption_chunks(chunks, ClaudeLLM(s.caption_model), s.caption_model, cache, workers)
+    captioned = caption_chunks(
+        chunks, make_llm(s.llm_provider, s.caption_model), s.caption_model, cache, workers
+    )
     store = ChunkStore(make_client(s.qdrant_path, s.qdrant_url), collection_for(s, "caption"))
     n = build_caption_index(store, captioned, SentenceTransformerEncoder(s.text_model, s.device))
     typer.echo(f"indexed {n} chunks into '{store.collection}'")
@@ -104,12 +106,12 @@ def eval_cmd(
 ) -> None:
     """Run the eval set and write eval/results/<stamp>_<name>.json."""
     from fieldnote.evaluation.runner import load_questions, run_eval
-    from fieldnote.llm import ClaudeLLM
+    from fieldnote.llm import make_llm
     from fieldnote.pipeline import load_pipeline
 
     s = get_settings()
     pipe = load_pipeline(s, mode, reranker)  # type: ignore[arg-type]
-    judge = None if no_judge else ClaudeLLM(s.judge_model)
+    judge = None if no_judge else make_llm(s.llm_provider, s.judge_model)
     label = name or f"{mode}-{reranker or s.reranker}"
     summary, out = run_eval(
         pipe, load_questions(questions), judge, Path("eval/results"), label, repeats

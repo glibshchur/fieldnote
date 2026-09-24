@@ -20,7 +20,7 @@ class SiglipEncoder:
         self.torch = torch
         self.device = resolve_device(device)
         dtype = torch.float16 if self.device in ("cuda", "mps") else torch.float32
-        self.model = AutoModel.from_pretrained(model_name, torch_dtype=dtype).to(self.device).eval()
+        self.model = AutoModel.from_pretrained(model_name, dtype=dtype).to(self.device).eval()
         self.processor = AutoProcessor.from_pretrained(model_name)
         self.batch_size = batch_size
         self.dim = int(self.encode_queries(["probe"]).shape[1])

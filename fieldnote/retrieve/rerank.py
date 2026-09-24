@@ -33,7 +33,7 @@ class JinaM0Reranker:
         dev = resolve_device(device)
         dtype = torch.float16 if dev in ("cuda", "mps") else torch.float32
         self.model = (
-            AutoModel.from_pretrained(model_name, torch_dtype=dtype, trust_remote_code=True)
+            AutoModel.from_pretrained(model_name, dtype=dtype, trust_remote_code=True)
             .to(dev)
             .eval()
         )

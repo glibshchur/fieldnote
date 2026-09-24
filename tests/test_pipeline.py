@@ -139,3 +139,16 @@ def test_eval_end_to_end(settings, tmp_path):
     assert summary["latency"]["p95_s"] >= 0
     table = results_table({"native": json.loads(out.read_text())}, k_pool=5)
     assert "| native | visual-only | 1 |" in table
+
+
+def test_gemini_backend_converts_blocks(tmp_path):
+    from fieldnote.llm import GeminiLLM, image_block, text_block
+
+    img = tmp_path / "chart.png"
+    Image.new("RGB", (32, 32), "white").save(img)
+    llm = object.__new__(GeminiLLM)  # no client needed to test conversion
+    llm.media_resolution = "MEDIA_RESOLUTION_HIGH"
+    parts = llm._parts([text_block("[S1] manual_figure"), image_block(img)])
+    assert parts[0].text == "[S1] manual_figure"
+    assert parts[1].inline_data.mime_type == "image/png"
+    assert parts[1].inline_data.data[:4] == b"\x89PNG"

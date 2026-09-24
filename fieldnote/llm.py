@@ -1,4 +1,7 @@
-"""Thin wrapper over the Anthropic SDK, plus a scripted fake for tests."""
+"""LLM backends (Anthropic, Gemini) behind one interface, plus a scripted fake for tests.
+
+The pipeline builds Anthropic-style content blocks ({"type": "text"} / {"type": "image"});
+each backend converts them to its own wire format."""
 
 from __future__ import annotations
 
@@ -61,6 +64,77 @@ class ClaudeLLM:
             input_tokens=resp.usage.input_tokens,
             output_tokens=resp.usage.output_tokens,
         )
+
+
+class GeminiLLM:
+    """Google Gemini via the google-genai SDK. Reads GEMINI_API_KEY from the environment."""
+
+    def __init__(
+        self, model: str, thinking_level: str | None = None, media_resolution: str = "high"
+    ):
+        import os
+
+        from google import genai
+
+        self.client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+        self.model = model
+        self.thinking_level = thinking_level
+        # Charts need the high-resolution image tokenizer; low loses axis tick labels.
+        self.media_resolution = f"MEDIA_RESOLUTION_{media_resolution.upper()}"
+
+    def _parts(self, content: list[dict]) -> list:
+        from google.genai import types
+
+        parts = []
+        for block in content:
+            if block["type"] == "text":
+                parts.append(types.Part.from_text(text=block["text"]))
+            elif block["type"] == "image":
+                src = block["source"]
+                parts.append(
+                    types.Part.from_bytes(
+                        data=base64.standard_b64decode(src["data"]),
+                        mime_type=src["media_type"],
+                        media_resolution={"level": self.media_resolution},
+                    )
+                )
+        return parts
+
+    def complete(self, system: str, content: list[dict], max_tokens: int = 2048) -> LLMResult:
+        from google.genai import types
+
+        config = types.GenerateContentConfig(
+            system_instruction=system, max_output_tokens=max_tokens
+        )
+        if self.thinking_level:
+            config.thinking_config = types.ThinkingConfig(
+                thinking_level=self.thinking_level.upper()
+            )
+        resp = self.client.models.generate_content(
+            model=self.model,
+            contents=[types.Content(role="user", parts=self._parts(content))],
+            config=config,
+        )
+        finish = resp.candidates[0].finish_reason if resp.candidates else None
+        finish_name = getattr(finish, "value", finish)
+        if finish_name in ("SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST") or not resp.candidates:
+            return LLMResult("The model declined to answer this request.", "refusal")
+        usage = resp.usage_metadata
+        return LLMResult(
+            text=(resp.text or "").strip(),
+            stop_reason=finish_name,
+            input_tokens=(usage.prompt_token_count or 0) if usage else 0,
+            output_tokens=(usage.candidates_token_count or 0) if usage else 0,
+        )
+
+
+def make_llm(provider: str, model: str, effort: str | None = None) -> LLM:
+    """`effort` maps to Claude's output_config effort or Gemini's thinking level."""
+    if provider == "anthropic":
+        return ClaudeLLM(model, effort)
+    if provider == "gemini":
+        return GeminiLLM(model, thinking_level=effort)
+    raise ValueError(f"unknown LLM provider: {provider}")
 
 
 class ScriptedLLM:
