@@ -26,8 +26,11 @@ class SiglipEncoder:
         self.dim = int(self.encode_queries(["probe"]).shape[1])
 
     def encode_images(self, paths: list[str]) -> np.ndarray:
+        from tqdm import tqdm
+
         out = []
-        for i in range(0, len(paths), self.batch_size):
+        steps = range(0, len(paths), self.batch_size)
+        for i in tqdm(steps, desc="images", disable=len(paths) <= 256):
             images = [Image.open(p).convert("RGB") for p in paths[i : i + self.batch_size]]
             inputs = self.processor(images=images, return_tensors="pt").to(self.device)
             inputs["pixel_values"] = inputs["pixel_values"].to(self.model.dtype)
