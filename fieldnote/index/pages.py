@@ -31,6 +31,19 @@ class PageIndex:
         lengths = torch.tensor([e.shape[0] for e in page_embs])
         return cls(embs, lengths, chunks)
 
+    def nonfinite_pages(self) -> list[int]:
+        return [
+            i
+            for i in range(len(self.chunks))
+            if not torch.isfinite(self.embeddings[i, : self.lengths[i]]).all()
+        ]
+
+    def replace(self, i: int, emb: torch.Tensor) -> None:
+        self.embeddings[i] = 0
+        self.embeddings[i, : emb.shape[0]] = emb[: self.embeddings.shape[1]]
+        self.lengths[i] = min(emb.shape[0], self.embeddings.shape[1])
+        self._device_embs = None
+
     def save(self, directory: Path) -> None:
         directory.mkdir(parents=True, exist_ok=True)
         torch.save({"embeddings": self.embeddings, "lengths": self.lengths}, directory / "pages.pt")
@@ -58,7 +71,9 @@ class PageIndex:
             torch.arange(sims.shape[-1], device=device)[None, :] >= self.lengths.to(device)[:, None]
         )
         sims = sims.masked_fill(pad[:, None, :], float("-inf"))
-        return sims.max(dim=-1).values.float().sum(dim=-1)  # (N,)
+        scores = sims.max(dim=-1).values.float().sum(dim=-1)  # (N,)
+        # topk ranks NaN above every real score; a corrupt page must never win.
+        return torch.nan_to_num(scores, nan=float("-inf"))
 
     def search(self, query: torch.Tensor, k: int, device: str = "cpu") -> list[tuple[Chunk, float]]:
         scores = self.maxsim(query, device)

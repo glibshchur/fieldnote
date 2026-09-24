@@ -248,3 +248,19 @@ def test_shared_encoder_embeds_once_per_question(settings, tmp_path):
     build_caption_index(store, _corpus(tmp_path), HashingTextEncoder())
     ParallelRetriever(store, caption_lanes(CountingEncoder(), 2, 2, 1)).retrieve("q")
     assert len(calls) == 1  # three lanes, one shared encoder, one embedding
+
+
+def test_page_index_never_ranks_nan_pages_first():
+    import torch
+
+    from fieldnote.index.pages import PageIndex
+
+    good = Chunk("image", "manual_page", "m.pdf", page=1)
+    bad = Chunk("image", "manual_page", "m.pdf", page=2)
+    e = torch.eye(4, dtype=torch.float16)
+    nan_page = torch.full((2, 4), float("nan"), dtype=torch.float16)
+    idx = PageIndex.build([bad, good], [nan_page, e[[0, 1]]])
+    assert idx.nonfinite_pages() == [0]
+    assert idx.search(e[[0]], k=2)[0][0].id == good.id  # regression: NaN used to rank first
+    idx.replace(0, e[[2, 3]])
+    assert idx.nonfinite_pages() == []

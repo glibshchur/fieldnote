@@ -23,6 +23,7 @@ class ColQwenEncoder:
         dtype = torch.bfloat16 if self.device == "cuda" else torch.float16
         if self.device == "cpu":
             dtype = torch.float32
+        self.dtype = dtype
         self.model = ColQwen2_5.from_pretrained(model_name, dtype=dtype).to(self.device).eval()
         self.processor = ColQwen2_5_Processor.from_pretrained(model_name)
 
@@ -36,6 +37,21 @@ class ColQwenEncoder:
             mask = batch["attention_mask"].bool()
             out.extend(e[m].to("cpu", torch.float16) for e, m in zip(embs, mask, strict=True))
         return out
+
+    @torch.no_grad()
+    def encode_pages_fp32(self, paths: list[str]) -> list[torch.Tensor]:
+        """Re-encode in full precision on CPU: a few dense pages overflow fp16 on MPS."""
+        model = self.model.to("cpu", torch.float32)
+        try:
+            out = []
+            for p in paths:
+                batch = self.processor.process_images([Image.open(p).convert("RGB")])
+                emb = model(**batch)[0]
+                mask = batch["attention_mask"][0].bool()
+                out.append(emb[mask].to(torch.float16))
+            return out
+        finally:
+            self.model = model.to(self.device, self.dtype)
 
     @torch.no_grad()
     def encode_queries(self, texts: list[str]) -> list[torch.Tensor]:

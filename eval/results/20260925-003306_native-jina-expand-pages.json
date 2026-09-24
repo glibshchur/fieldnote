@@ -1,0 +1,1340 @@
+{
+  "system": "native-jina-expand-pages",
+  "config": {
+    "qdrant_path": ".qdrant",
+    "qdrant_url": "None",
+    "collection": "fieldnote",
+    "text_model": "BAAI/bge-base-en-v1.5",
+    "image_model": "google/siglip-so400m-patch14-384",
+    "whisper_model": "small",
+    "device": "auto",
+    "k_text": "8",
+    "k_image": "8",
+    "k_audio": "4",
+    "k_page": "6",
+    "page_model": "vidore/colqwen2.5-v0.2",
+    "top_n": "5",
+    "rerank_k": "12",
+    "reranker_image_px": "640",
+    "expand_page_figures": "2",
+    "reranker": "JinaM0Reranker",
+    "reranker_model": "jinaai/jina-reranker-m0",
+    "reranker_revision": "94bfe0aeb2d4dd7978362699cddd5893d4e0adc8",
+    "llm_provider": "gemini",
+    "answer_model": "gemini-3.8-flash",
+    "answer_effort": "low",
+    "caption_model": "gemini-3.8-flash",
+    "judge_model": "gemini-3.8-flash",
+    "mode": "native",
+    "k_total": "26"
+  },
+  "summary": {
+    "all": {
+      "n": 40,
+      "recall@5": 0.775,
+      "recall@26": 0.825,
+      "mrr": 0.6401282051282051,
+      "evidence_recall": 0.775,
+      "answer_acc": 0.725,
+      "citation_acc": 0.625,
+      "cited_rate": 0.775
+    },
+    "visual_only": {
+      "n": 15,
+      "recall@5": 0.5333333333333333,
+      "recall@26": 0.6,
+      "mrr": 0.5358974358974359,
+      "evidence_recall": 0.5333333333333333,
+      "answer_acc": 0.5333333333333333,
+      "citation_acc": 0.4666666666666667,
+      "cited_rate": 0.7333333333333333
+    },
+    "by_category": {
+      "audio": {
+        "n": 7,
+        "recall@5": 1.0,
+        "recall@26": 1.0,
+        "mrr": 0.7857142857142857,
+        "evidence_recall": 1.0,
+        "answer_acc": 1.0,
+        "citation_acc": 1.0,
+        "cited_rate": 1.0
+      },
+      "cross_modal": {
+        "n": 6,
+        "recall@5": 0.8333333333333334,
+        "recall@26": 1.0,
+        "mrr": 0.48333333333333334,
+        "evidence_recall": 0.8333333333333334,
+        "answer_acc": 0.6666666666666666,
+        "citation_acc": 0.6666666666666666,
+        "cited_rate": 0.8333333333333334
+      },
+      "text": {
+        "n": 12,
+        "recall@5": 0.9166666666666666,
+        "recall@26": 0.9166666666666666,
+        "mrr": 0.7638888888888888,
+        "evidence_recall": 0.9166666666666666,
+        "answer_acc": 0.8333333333333334,
+        "citation_acc": 0.5833333333333334,
+        "cited_rate": 0.6666666666666666
+      },
+      "visual_chart": {
+        "n": 8,
+        "recall@5": 0.75,
+        "recall@26": 0.75,
+        "mrr": 0.75,
+        "evidence_recall": 0.75,
+        "answer_acc": 0.75,
+        "citation_acc": 0.625,
+        "cited_rate": 0.875
+      },
+      "visual_diagram": {
+        "n": 7,
+        "recall@5": 0.2857142857142857,
+        "recall@26": 0.42857142857142855,
+        "mrr": 0.2912087912087912,
+        "evidence_recall": 0.2857142857142857,
+        "answer_acc": 0.2857142857142857,
+        "citation_acc": 0.2857142857142857,
+        "cited_rate": 0.5714285714285714
+      }
+    },
+    "latency": {
+      "p50_s": 6.822466020497814,
+      "p95_s": 9.184416943402525
+    }
+  },
+  "rows": [
+    {
+      "id": "q01",
+      "category": "visual_chart",
+      "visual_only": true,
+      "question": "I've got a Copeland ZP*KC scroll (5-12 ton, R-410A) running at -10\u00b0F saturated suction. What's the highest condensing temperature it's allowed to run at before it's outside the envelope?",
+      "gold_answer": "About 100\u00b0F condensing. The upper-left corner of the ZP*K3/ZP*KC envelope is at -10\u00b0F evaporating / 100\u00b0F condensing.",
+      "answer": "Not found in the provided sources. \n\nTo determine this, refer to the operating envelope chart (specifically the evaporating vs. condensing temperature curve) in Copeland Bulletin AE4-1365 for 5\u201312 ton ZP*KC compressors [S5].",
+      "rank": null,
+      "recall@5": 0.0,
+      "recall@26": 0.0,
+      "mrr": 0.0,
+      "evidence_hit": false,
+      "correct": false,
+      "judge_note": "numeric tolerance",
+      "citation_correct": false,
+      "has_citation": true,
+      "citations": [
+        "copeland_ae4-1365_zp_5-12ton.pdf, p.7"
+      ],
+      "timings": {
+        "search_s": 1.9567215830029454,
+        "rerank_s": 10.055773583997507,
+        "expand_s": 0.08277762500074459,
+        "answer_s": 2.943407209000725,
+        "total_s": 15.03872491599759
+      },
+      "usage": {
+        "input_tokens": 5322,
+        "output_tokens": 55
+      }
+    },
+    {
+      "id": "q02",
+      "category": "visual_chart",
+      "visual_only": true,
+      "question": "I'm charging a Carrier 38AUZA07 6-ton condensing unit (R-410A) and my gauge reads 400 psig at the liquid valve. What liquid-line temperature at the valve should I be seeing if the charge is correct?",
+      "gold_answer": "About 106\u00b0F. Higher liquid temperature means add charge; lower means remove charge.",
+      "answer": "**Approximately 105\u00b0F (approx. 40\u00b0C\u201341\u00b0C)** [S6].\n\n- **Source chart:** Fig. 22 \u2014 38AUZA/B07 Charging Chart (RTPF) [S1, S6].\n- **Axis conditions:** Read at 400 PSIG on the horizontal \"Pressure at Liquid Valve\" axis where it intersects the curve [S6].\n- **Reading precision:** The vertical temperature axis has major grid lines every 10\u00b0F (minor divisions every 2\u00b0F); the curve crosses midway between 100\u00b0F and 110\u00b0F, readable to approximately \u00b11\u00b0F [S6].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "numeric tolerance",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "carrier_38au_07-14_iss.pdf, p.22"
+      ],
+      "timings": {
+        "search_s": 1.247850917003234,
+        "rerank_s": 2.814863040999626,
+        "expand_s": 0.13486204099899624,
+        "answer_s": 4.722450334003952,
+        "total_s": 8.920087083002727
+      },
+      "usage": {
+        "input_tokens": 4561,
+        "output_tokens": 153
+      }
+    },
+    {
+      "id": "q03",
+      "category": "visual_chart",
+      "visual_only": true,
+      "question": "Checking charge on circuit 1 of a Lennox LGH092H4 rooftop (all-aluminum coil, TXV). It's 75\u00b0F outdoors and suction is 140 psig. What liquid line temperature should I be seeing?",
+      "gold_answer": "About 80\u00b0F (circuit 1, 75\u00b0F outdoor curve).",
+      "answer": "**Target Liquid Temperature: ~80\u00b0F (\u00b11\u00b0F)** [S1, S6]\n\n- **Reading conditions:** Using the top chart for **LGH/LCH092H4 Charging Curves - All-Aluminum - TXV**, follow the solid line for **Circuit 1** at the **75\u00b0F** outdoor temperature curve [S1, S6].\n- **Axes reading:** Locate **140 psig** on the horizontal Suction Pressure axis and trace up to the 75\u00b0F solid curve; reading across to the vertical Liquid Temperature axis gives approximately **80\u00b0F** [S6].\n- If measured liquid temperature is higher than target, add charge; if lower, recover charge [S4].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "numeric tolerance",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "lennox_lgh_7.5-12.5_service.pdf, p.49",
+        "lennox_lgx_lcx_092-150_install.pdf, p.28"
+      ],
+      "timings": {
+        "search_s": 0.883616292005172,
+        "rerank_s": 3.285242041994934,
+        "expand_s": 0.13798316699831048,
+        "answer_s": 2.4362095830001635,
+        "total_s": 6.743100332998438
+      },
+      "usage": {
+        "input_tokens": 5782,
+        "output_tokens": 159
+      }
+    },
+    {
+      "id": "q04",
+      "category": "visual_chart",
+      "visual_only": true,
+      "question": "Trane Voyager 30-ton (YC 360) running full load. It's 95\u00b0F outdoors with 80/67 entering air on the indoor coil. What discharge pressure should I expect?",
+      "gold_answer": "About 417 psig discharge (with about 136 psig suction).",
+      "answer": "Not found in the provided sources. \n\nThe Trane Voyager document provided [S5] is only the cover page and does not contain charging charts or operating pressure curves. You need the charging chart / normal operating pressure table from the Trane Voyager 27.5\u201350 Ton service manual (RT-SVX34C-EN).",
+      "rank": null,
+      "recall@5": 0.0,
+      "recall@26": 0.0,
+      "mrr": 0.0,
+      "evidence_hit": false,
+      "correct": false,
+      "judge_note": "numeric tolerance",
+      "citation_correct": false,
+      "has_citation": true,
+      "citations": [
+        "trane_voyager_27-50_iom.pdf, p.1"
+      ],
+      "timings": {
+        "search_s": 1.2352668750027078,
+        "rerank_s": 3.4000329170012265,
+        "expand_s": 0.07783974999620114,
+        "answer_s": 2.3827017080038786,
+        "total_s": 7.095923834000132
+      },
+      "usage": {
+        "input_tokens": 4881,
+        "output_tokens": 72
+      }
+    },
+    {
+      "id": "q05",
+      "category": "visual_chart",
+      "visual_only": true,
+      "question": "Charging a Trane RAUJ condensing unit with about 50 ft of refrigerant lines. Liquid line temp at the outdoor unit is 120\u00b0F. What discharge pressure is the target on the charging chart, and if I'm reading 530 psig do I add or remove charge?",
+      "gold_answer": "About 500 psig on the 50 ft curve; 530 psig is above the curve, so remove charge.",
+      "answer": "**Target Discharge Pressure: ~500 psig; Action: Remove Charge** [S1, S6].\n\n- **Chart Reading:** On Figure 74 using the **50\u2032 lines** curve at **120\u00b0F** liquid line temperature, the target discharge pressure falls directly on the grid line at **500 psig** (reading precision is within \u00b15 psig due to the 50-psig grid increments) [S1, S6].\n- **Operating Condition:** At a reading of 530 psig and 120\u00b0F, your operating point is above the curve in the **\"Remove Charge\"** region [S1, S6].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "numeric tolerance",
+      "citation_correct": false,
+      "has_citation": false,
+      "citations": [],
+      "timings": {
+        "search_s": 1.1037624580058036,
+        "rerank_s": 3.7630912919994444,
+        "expand_s": 0.0703522920011892,
+        "answer_s": 2.8492711660001078,
+        "total_s": 7.786499417001323
+      },
+      "usage": {
+        "input_tokens": 5524,
+        "output_tokens": 145
+      }
+    },
+    {
+      "id": "q06",
+      "category": "visual_chart",
+      "visual_only": true,
+      "question": "If a Sporlan TEV with a straight liquid (L) thermostatic charge is set for about 12\u00b0F static superheat at 0\u00b0F evaporator, what static superheat does its characteristic curve give at 30\u00b0F evaporator?",
+      "gold_answer": "About 7.5\u00b0F.",
+      "answer": "**Approximately 9\u00b0F to 9.5\u00b0F static superheat** [S6].\n\n- **Reading conditions:** Using Figure 6 (\"Sporlan Selective Thermostatic Charges\"), follow the \"Liquid Charge (L)\" curve [S6].\n- **Axis points:** At 0\u00b0F evaporator temperature, the curve reads ~12\u00b0F superheat; moving along the curve to 30\u00b0F on the horizontal axis (Evaporator Temperature \u00b0F), the vertical axis (Superheat \u00b0F) reads just below the 10\u00b0F gridline [S6].\n- **Precision:** The chart provides gridlines every 20\u00b0F and 5\u00b0F, making this visual reading precise to within approximately \u00b10.5\u00b0F [S6].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "numeric tolerance",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "sporlan_bulletin_10-9.pdf, p.7"
+      ],
+      "timings": {
+        "search_s": 0.6421069579955656,
+        "rerank_s": 2.9851433750009164,
+        "expand_s": 0.20011595800315263,
+        "answer_s": 3.572921166996821,
+        "total_s": 7.400329582997074
+      },
+      "usage": {
+        "input_tokens": 4959,
+        "output_tokens": 163
+      }
+    },
+    {
+      "id": "q07",
+      "category": "visual_chart",
+      "visual_only": true,
+      "question": "Danfoss SZ147 scroll on R-134a: what's the lowest evaporating temperature it's rated for, and what's the maximum condensing temperature right at that point?",
+      "gold_answer": "Minimum evaporating is 10\u00b0F; at 10\u00b0F evaporating the maximum condensing temperature is 140\u00b0F.",
+      "answer": "**Lowest evaporating temperature:** **10\u00b0F** [S2].  \n**Maximum condensing temperature at 10\u00b0F evaporating:** **140\u00b0F** (exact grid intersection) [S2].\n\n- Read directly from the middle chart titled **SZ147 R134a** [S1, S2].  \n- The left boundary of the operating envelope sits exactly on the 10\u00b0F evaporating temperature line, ranging from 86\u00b0F up to 140\u00b0F condensing temperature [S2].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "numeric tolerance",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "danfoss_sm_sy_sz_scroll.pdf, p.28"
+      ],
+      "timings": {
+        "search_s": 0.5102345420018537,
+        "rerank_s": 3.465131457996904,
+        "expand_s": 0.13705825000215555,
+        "answer_s": 3.062942459000624,
+        "total_s": 7.175412000004144
+      },
+      "usage": {
+        "input_tokens": 5729,
+        "output_tokens": 116
+      }
+    },
+    {
+      "id": "q08",
+      "category": "visual_chart",
+      "visual_only": true,
+      "question": "Bryant 569J 20-ton condensing unit (the size 25 model) on R-410A: with 350 psig at the liquid service valve, what liquid temperature at the valve means the charge is right?",
+      "gold_answer": "About 98\u00b0F.",
+      "answer": "**95\u00b0F to 98\u00b0F** (depending on whether it is a single-circuit 569J\\*25A/B or dual-circuit 569J\\*25T/U model) [S6, S7].\n\n- **569J\\*25A/B (Fig. 25):** At 350 psig, the curve reads right on the line at **96\u00b0F (\u00b11\u00b0F)** / ~35.5\u00b0C [S6].\n- **569J\\*25T/U (Fig. 27):** \n  - Circuit A reads at approximately **95\u00b0F (\u00b11\u00b0F)** [S7].\n  - Circuit B reads at approximately **98\u00b0F (\u00b11\u00b0F)** [S7].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "numeric tolerance",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "bryant_569j_condensing_iss.pdf, p.23",
+        "bryant_569j_condensing_iss.pdf, p.25"
+      ],
+      "timings": {
+        "search_s": 0.6439734580053482,
+        "rerank_s": 2.8030777079984546,
+        "expand_s": 0.13604833299905295,
+        "answer_s": 2.8125196670007426,
+        "total_s": 6.395685499999672
+      },
+      "usage": {
+        "input_tokens": 4722,
+        "output_tokens": 184
+      }
+    },
+    {
+      "id": "q09",
+      "category": "visual_diagram",
+      "visual_only": true,
+      "question": "Swapping the outdoor fan motor on a Trane 4TWR7 heat pump. The motor has brown, purple and black leads. Where does each one land?",
+      "gold_answer": "Brown to the FAN (F) terminal of the dual run capacitor; purple to the capacitor's common (C); black to the normally-closed side of relay K2 on the demand defrost control.",
+      "answer": "Not found in the provided sources. \n\nThe provided sources cover Mitsubishi, Goodman, Bryant, and Daikin units, but do not contain wiring diagrams or documentation for a Trane 4TWR7 heat pump. The unit's wiring schematic or the Trane 4TWR7 service manual is needed to settle motor lead connections.",
+      "rank": null,
+      "recall@5": 0.0,
+      "recall@26": 0.0,
+      "mrr": 0.0,
+      "evidence_hit": false,
+      "correct": false,
+      "judge_note": "abstained on an answerable question",
+      "citation_correct": false,
+      "has_citation": false,
+      "citations": [],
+      "timings": {
+        "search_s": 0.4996287499961909,
+        "rerank_s": 3.3578102920000674,
+        "expand_s": 0.13695616699988022,
+        "answer_s": 2.657388457999332,
+        "total_s": 6.651807166999788
+      },
+      "usage": {
+        "input_tokens": 4397,
+        "output_tokens": 69
+      }
+    },
+    {
+      "id": "q10",
+      "category": "visual_diagram",
+      "visual_only": true,
+      "question": "I'm wiring a Penn P70E SPDT low-pressure control to run a load and an alarm. Which switch terminal gets line (L1), which one gets the alarm, and which one gets the load?",
+      "gold_answer": "L1 to terminal 1 (common); alarm on terminal 2; load on terminal 3; both return to L2.",
+      "answer": "- **Terminal 1** connects to **Line (L1)** [S2].\n- **Terminal 2** connects to the **Alarm** [S2].\n- **Terminal 3** connects to the **Load** [S2].\n\n*(On pressure rise, terminal 1 to 3 opens and terminal 1 to 2 closes [S2, S3]).*",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant correctly identifies the terminal assignments for Line (L1), the alarm, and the load as stated in the reference.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "jci_penn_p70_low_pressure.pdf, p.6"
+      ],
+      "timings": {
+        "search_s": 0.9308464169953368,
+        "rerank_s": 3.316930875000253,
+        "expand_s": 0.06832850000500912,
+        "answer_s": 2.9847535000008065,
+        "total_s": 7.300904499999888
+      },
+      "usage": {
+        "input_tokens": 5433,
+        "output_tokens": 81
+      }
+    },
+    {
+      "id": "q11",
+      "category": "visual_diagram",
+      "visual_only": true,
+      "question": "On a Carrier 48TC size 04-07 rooftop, the 24 V control circuit keeps dropping out. What is the trip rating of the circuit breaker on the control transformer secondary?",
+      "gold_answer": "3.2 amps.",
+      "answer": "Not found in the provided sources. \n\nA Carrier 48TC (size 04\u201307) service manual, product data, or the transformer's physical nameplate/wiring diagram would be needed to verify the secondary circuit breaker's trip rating.",
+      "rank": null,
+      "recall@5": 0.0,
+      "recall@26": 0.0,
+      "mrr": 0.0,
+      "evidence_hit": false,
+      "correct": false,
+      "judge_note": "numeric tolerance",
+      "citation_correct": false,
+      "has_citation": false,
+      "citations": [],
+      "timings": {
+        "search_s": 0.8923836670001037,
+        "rerank_s": 3.433194375000312,
+        "expand_s": 0.0688354999947478,
+        "answer_s": 3.2842505000007804,
+        "total_s": 7.678680541997892
+      },
+      "usage": {
+        "input_tokens": 4236,
+        "output_tokens": 55
+      }
+    },
+    {
+      "id": "q12",
+      "category": "visual_diagram",
+      "visual_only": true,
+      "question": "On a Trane Precedent WSC120E heat pump with the direct-drive plenum fan, I've got 4.25 volts across Vt and com on the fan speed pot. What motor rpm does that correspond to, and which way do I turn the knob to speed it up?",
+      "gold_answer": "995 rpm; push and turn counter-clockwise to increase voltage/rpm.",
+      "answer": "**912 RPM**; turn the potentiometer **clockwise** to speed it up.\n\n- In Table 17 (\"RPM table\"), a voltage measurement of **4.25 V** corresponds exactly to **912 motor rpm** [S6].\n- To increase the voltage (and thus increase fan speed/RPM), turn the **R136 potentiometer clockwise** [S1, S6].",
+      "rank": null,
+      "recall@5": 0.0,
+      "recall@26": 0.0,
+      "mrr": 0.0,
+      "evidence_hit": false,
+      "correct": false,
+      "judge_note": "numeric tolerance",
+      "citation_correct": false,
+      "has_citation": true,
+      "citations": [
+        "trane_precedent_hp_rt-svx23r.pdf, p.51"
+      ],
+      "timings": {
+        "search_s": 1.2087705000012647,
+        "rerank_s": 3.8990735419938574,
+        "expand_s": 0.13778925000224262,
+        "answer_s": 8.961000666997279,
+        "total_s": 14.206684290998965
+      },
+      "usage": {
+        "input_tokens": 6267,
+        "output_tokens": 86
+      }
+    },
+    {
+      "id": "q13",
+      "category": "visual_diagram",
+      "visual_only": true,
+      "question": "AAON CF condensing unit with the variable capacity scroll compressor controller is flashing ALERT code 2, high discharge temperature. When does it reset on its own, and how many trips before it locks the compressor out?",
+      "gold_answer": "Resets after 30 minutes once the motor cools; 5 events within 4 hours locks the compressor out.",
+      "answer": "Not found in the provided sources. \n\nThe sources mention Emerson Climate Bulletin AE8-1328 for the variable capacity compressor controller's alert flash codes and troubleshooting [S1, S2, S3], but the specific reset threshold and lockout trip count for ALERT code 2 are not detailed. Emerson Climate Bulletin AE8-1328 or the controller troubleshooting table from the manual is needed to settle it.",
+      "rank": 26,
+      "recall@5": 0.0,
+      "recall@26": 1.0,
+      "mrr": 0.038461538461538464,
+      "evidence_hit": false,
+      "correct": false,
+      "judge_note": "abstained on an answerable question",
+      "citation_correct": false,
+      "has_citation": false,
+      "citations": [],
+      "timings": {
+        "search_s": 0.973992500003078,
+        "rerank_s": 3.3025215000016033,
+        "expand_s": 0.06882754200341878,
+        "answer_s": 2.5564729159959825,
+        "total_s": 6.901831707997189
+      },
+      "usage": {
+        "input_tokens": 3239,
+        "output_tokens": 87
+      }
+    },
+    {
+      "id": "q14",
+      "category": "visual_diagram",
+      "visual_only": true,
+      "question": "On a Daikin Rebel DPS 003-015 with the staged gas furnace, what's wired between the PS1 and PS2 terminals on the ignition control module?",
+      "gold_answer": "A series string: PS2, air pressure switch, flame roll-out switch #2, roll-out switch #1, PS1. The high limits are on R, not in this string.",
+      "answer": "Wired in series between terminals **PS1** and **PS2** are the **Air Pressure Switch**, **Roll-out Switch #2**, and **Roll-out Switch #1** [S6]. \n\n*(Note: In the simplified generic diagram Figure 60, only a \"Pressure Switch\" is depicted between PS1 and PS2 [S7]).*",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant accurately identifies the series string of the air pressure switch and both flame roll-out switches wired between PS1 and PS2.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "daikin_rebel_im1125.pdf, p.57",
+        "daikin_rebel_im1125.pdf, p.57"
+      ],
+      "timings": {
+        "search_s": 1.7287137500024983,
+        "rerank_s": 4.200223708001431,
+        "expand_s": 0.07095004199800314,
+        "answer_s": 2.5720836660038913,
+        "total_s": 8.572046416004014
+      },
+      "usage": {
+        "input_tokens": 5422,
+        "output_tokens": 77
+      }
+    },
+    {
+      "id": "q15",
+      "category": "visual_diagram",
+      "visual_only": true,
+      "question": "York ZF090-120 cooling unit with gas heat: at what suction pressure does the low-pressure switch open, and at what pressure does it close again?",
+      "gold_answer": "Opens at 50 psig (\u00b15), closes at 71 psig (\u00b15).",
+      "answer": "Not found in the provided sources. \n\nThe provided York source [S3] is a component overview diagram and does not list pressure switch cut-out or cut-in ratings. The York ZF technical guide or service manual section covering pressure controls/switch specifications would settle it.",
+      "rank": null,
+      "recall@5": 0.0,
+      "recall@26": 0.0,
+      "mrr": 0.0,
+      "evidence_hit": false,
+      "correct": false,
+      "judge_note": "numeric tolerance",
+      "citation_correct": false,
+      "has_citation": true,
+      "citations": [
+        "york_zf_7.5-12.5_techguide.pdf, p.2"
+      ],
+      "timings": {
+        "search_s": 0.5933374580054078,
+        "rerank_s": 3.1640677499963203,
+        "expand_s": 0.20601737499964656,
+        "answer_s": 3.4283692500030156,
+        "total_s": 7.391856332993484
+      },
+      "usage": {
+        "input_tokens": 5494,
+        "output_tokens": 56
+      }
+    },
+    {
+      "id": "q16",
+      "category": "text",
+      "visual_only": false,
+      "question": "What makes a Copeland CoreSense module throw Code 8 for a welded contactor?",
+      "gold_answer": "Current detected in the S and R windings while Y demand has been absent for 15 seconds.",
+      "answer": "The module triggers a Code 8 alert when it detects line currents in the \"S\" and \"R\" windings while demand is absent for 15 seconds [S1]. \n\n- When active, the module flashes yellow eight times [S1].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant correctly identifies that Code 8 is triggered when current is detected in the S and R windings while demand is absent for 15 seconds.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "copeland_ae1385_coresense.pdf, p.8"
+      ],
+      "timings": {
+        "search_s": 0.9036064579995582,
+        "rerank_s": 3.3548395420002635,
+        "expand_s": 0.2031823750003241,
+        "answer_s": 3.4659284580047824,
+        "total_s": 7.9276002920014434
+      },
+      "usage": {
+        "input_tokens": 6123,
+        "output_tokens": 52
+      }
+    },
+    {
+      "id": "q17",
+      "category": "text",
+      "visual_only": false,
+      "question": "What pressure opens the high pressure switch on the compressors of a Daikin Rebel rooftop?",
+      "gold_answer": "580 psig.",
+      "answer": "The switch will open when the pressure exceeds **580 PSIG** [S1, S2]. \n\n- These high pressure switches are normally closed devices brazed directly to the refrigerant piping [S1, S2].\n- Opening the switch shuts down the compressors (interrupting the variable compressor control signal or de-energizing the fixed compressor contactor coil) and triggers an alarm on the MicroTech III keypad [S1, S2].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "numeric tolerance",
+      "citation_correct": false,
+      "has_citation": false,
+      "citations": [],
+      "timings": {
+        "search_s": 1.1708639159987797,
+        "rerank_s": 3.2165065840017633,
+        "expand_s": 0.07381212500331458,
+        "answer_s": 3.499020124996605,
+        "total_s": 7.960869125003228
+      },
+      "usage": {
+        "input_tokens": 6186,
+        "output_tokens": 93
+      }
+    },
+    {
+      "id": "q18",
+      "category": "text",
+      "visual_only": false,
+      "question": "What are the minimum compressor off and on times on an AAON CF condensing unit, and what's the max starts per hour?",
+      "gold_answer": "At least 3 minutes off and 5 minutes on, no more than 7 starts per hour.",
+      "answer": "- **Minimum Off Time:** 3 minutes [S1, S3, S6]\n- **Minimum On Time:** 5 minutes [S1, S3, S6]\n- **Maximum Starts Per Hour:** 7 starts per hour [S1, S3, S6]\n\n*(Note: The 3-minute minimum off time prevents motor overheating, while the 5-minute on time maintains proper oil level [S1, S6]).*",
+      "rank": 3,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 0.3333333333333333,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant correctly provides the minimum off time (3 minutes), minimum on time (5 minutes), and maximum starts per hour (7 starts per hour) as specified in the reference answer.",
+      "citation_correct": false,
+      "has_citation": false,
+      "citations": [],
+      "timings": {
+        "search_s": 1.0915763750017504,
+        "rerank_s": 3.0948732910037506,
+        "expand_s": 0.06969204200140666,
+        "answer_s": 2.9162292499968316,
+        "total_s": 7.172396916001162
+      },
+      "usage": {
+        "input_tokens": 4220,
+        "output_tokens": 98
+      }
+    },
+    {
+      "id": "q19",
+      "category": "text",
+      "visual_only": false,
+      "question": "Can I run a space heater overnight off the unit-powered convenience outlet on a Carrier 48TC? What is the loading limit?",
+      "gold_answer": "No; intermittent loads only. Loads above 8 A are limited to 30 minutes per hour (50%).",
+      "answer": "**No, you cannot run a space heater overnight.** [S1]\n\n- The transformer is intended only for intermittent service tools/lamps and is **not intended to provide 15-amps loading for continuous duty loads** like electric heaters for overnight use [S1].\n- You must observe a **50% limit on circuit loading above 8 amps** [S1].\n- This means loads exceeding 8 amps must be limited to **30 minutes of operation every hour** [S1].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant correctly states that a space heater cannot be run overnight because the outlet is for intermittent use only, and accurately identifies the loading limit of 50% (30 minutes per hour) for loads above 8 amps.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "carrier_48tc_04-16_service.pdf, p.36"
+      ],
+      "timings": {
+        "search_s": 0.5138118749964633,
+        "rerank_s": 2.7615339170006337,
+        "expand_s": 0.07060879200435011,
+        "answer_s": 2.861039208000875,
+        "total_s": 6.208135417000449
+      },
+      "usage": {
+        "input_tokens": 5138,
+        "output_tokens": 105
+      }
+    },
+    {
+      "id": "q20",
+      "category": "text",
+      "visual_only": false,
+      "question": "At what compressor discharge temperature does a Carrier 38MURA shut the compressor off?",
+      "gold_answer": "When discharge temperature T5 is above 239\u00b0F (115\u00b0C) for 5 seconds.",
+      "answer": "**239\u00b0F (115\u00b0C) for R-410A** or **226.4\u00b0F (108\u00b0C) for R-32** [S1, S6].\n\n- The unit trips if discharge temperature (T5) exceeds **239\u00b0F (115\u00b0C)** for 5 seconds [S3] or exceeds the trip threshold for 9 seconds [S1].\n- When triggered, the compressor ceases operation and the LED displays error code **PC 06** [S1].",
+      "rank": 3,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 0.3333333333333333,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "numeric tolerance",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "carrier_38mura_service.pdf, p.18",
+        "carrier_38mura_service.pdf, p.37"
+      ],
+      "timings": {
+        "search_s": 0.6010939170009806,
+        "rerank_s": 3.306947625002067,
+        "expand_s": 0.13548491700203158,
+        "answer_s": 2.9164594579997356,
+        "total_s": 6.961690291995183
+      },
+      "usage": {
+        "input_tokens": 4216,
+        "output_tokens": 122
+      }
+    },
+    {
+      "id": "q21",
+      "category": "text",
+      "visual_only": false,
+      "question": "I need to get into the VFD on a Lennox LGH 7.5-12.5 ton rooftop. How long after I kill power before it's safe to open the cover?",
+      "gold_answer": "At least 10 minutes after power is disconnected and the power lamp is off.",
+      "answer": "Wait **at least 10 minutes** after disconnecting power and ensuring the power lamp has turned off [S1, S6]. \n\n- The VFD holds a potentially lethal electrical charge for up to 10 minutes after power disconnect [S1, S6].\n- Do not open the VFD cover until 10 minutes have passed and the power lamp is completely off [S1, S6].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant correctly states to wait at least 10 minutes after disconnecting power and verifying the power lamp is off.",
+      "citation_correct": false,
+      "has_citation": false,
+      "citations": [],
+      "timings": {
+        "search_s": 0.5323113330014166,
+        "rerank_s": 4.214551000004576,
+        "expand_s": 0.13669875000050524,
+        "answer_s": 3.2785006669946597,
+        "total_s": 8.162078207999002
+      },
+      "usage": {
+        "input_tokens": 6230,
+        "output_tokens": 86
+      }
+    },
+    {
+      "id": "q22",
+      "category": "text",
+      "visual_only": false,
+      "question": "On a Trane 4TWR7 heat pump the defrost is ending too early in the cold. What's the factory defrost termination temperature, and how do I raise it?",
+      "gold_answer": "47\u00b0F as shipped; cut jumper J2 for a 70\u00b0F termination when outdoor ambient is at or below 30\u00b0F.",
+      "answer": "As shipped from the factory, defrost terminates at **47\u00b0F** when outdoor temperature is >22\u00b0F (or ODT + 25\u00b0F between 10\u00b0F\u201322\u00b0F, and 35\u00b0F between 6\u00b0F\u201310\u00b0F) [S1, S6]. \n\nTo raise it:\n- Cut **Jumper J2** on the defrost control board [S1, S2, S4].\n- This increases the termination temperature to **70\u00b0F** when the outdoor ambient temperature is between 6\u00b0F and 30\u00b0F (at or below 30\u00b0F) [S1, S2, S6].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant correctly identifies the 47\u00b0F factory termination temperature and states that cutting jumper J2 raises the termination temperature to 70\u00b0F when the outdoor ambient is at or below 30\u00b0F.",
+      "citation_correct": false,
+      "has_citation": false,
+      "citations": [],
+      "timings": {
+        "search_s": 1.2104812079996918,
+        "rerank_s": 3.0976715840006364,
+        "expand_s": 0.06873304200416896,
+        "answer_s": 3.2427749579946976,
+        "total_s": 7.61967845899926
+      },
+      "usage": {
+        "input_tokens": 4306,
+        "output_tokens": 151
+      }
+    },
+    {
+      "id": "q23",
+      "category": "text",
+      "visual_only": false,
+      "question": "New Lennox TSA condensing unit with a crankcase heater. How long does the heater need to be on before I start it up?",
+      "gold_answer": "24 hours before start-up.",
+      "answer": "Not found in the provided sources. \n\nThe provided Lennox TSA documents ([S4], [S5]) show the unit dimensions and parts arrangement (locating the crankcase heater thermostat) but do not state the pre-startup crankcase heater warm-up duration. The Lennox TSA installation manual's Start-Up section is required to settle this.",
+      "rank": null,
+      "recall@5": 0.0,
+      "recall@26": 0.0,
+      "mrr": 0.0,
+      "evidence_hit": false,
+      "correct": false,
+      "judge_note": "numeric tolerance",
+      "citation_correct": false,
+      "has_citation": true,
+      "citations": [
+        "lennox_tsa_condensing_install.pdf, p.2",
+        "lennox_tsa_condensing_install.pdf, p.2"
+      ],
+      "timings": {
+        "search_s": 0.5370923339942237,
+        "rerank_s": 3.2905132910018438,
+        "expand_s": 0.06911716700415127,
+        "answer_s": 2.670791874996212,
+        "total_s": 6.567591625003843
+      },
+      "usage": {
+        "input_tokens": 5263,
+        "output_tokens": 71
+      }
+    },
+    {
+      "id": "q24",
+      "category": "text",
+      "visual_only": false,
+      "question": "After charging a Trane RAUJ condensing unit, how long should it run before I record pressures, and how close to the pressure curve do they need to be?",
+      "gold_answer": "About 30 minutes at full load with all condenser fans running; within \u00b110 psig of the pressure curve.",
+      "answer": "The unit must run for **approximately 30 minutes** at full load with all condenser fans running, and operating pressures should be within **\u00b110 Psig** of the appropriate pressure curve [S1]. \n\n- Step 12 specifies running the unit under these conditions before recording pressures [S1].\n- The pressures are compared against the appropriate curve shown in Figure 74, p. 112 [S1].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant's answer accurately provides the required run time of approximately 30 minutes at full load and the acceptable pressure tolerance of \u00b110 psig.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "trane_rauj_cauj_ss-svx11m.pdf, p.111"
+      ],
+      "timings": {
+        "search_s": 0.6236782080013654,
+        "rerank_s": 3.0966033329968923,
+        "expand_s": 0.06915912499971455,
+        "answer_s": 2.382541625003796,
+        "total_s": 6.244709333004721
+      },
+      "usage": {
+        "input_tokens": 4236,
+        "output_tokens": 91
+      }
+    },
+    {
+      "id": "q25",
+      "category": "text",
+      "visual_only": false,
+      "question": "Evacuating a Daikin DCG/DCC 15-25 ton rooftop: what micron level should I pull to, and what rate-of-rise result means it's properly evacuated?",
+      "gold_answer": "Pull to 250 microns maximum; if the vacuum does not rise above 1500 microns in three to five minutes, it's properly evacuated.",
+      "answer": "Evacuate to a **maximum of 250 microns** [S1]. \n\n* After closing the valve to the vacuum pump, the system is considered properly evacuated if the vacuum **does not rise above 1500 microns in three to five minutes** [S1].\n* If it rises and levels off at about 5000 microns, moisture/non-condensables remain; if it continues rising, a leak is present [S1].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant correctly states to evacuate to a maximum of 250 microns and that the vacuum must not rise above 1500 microns in three to five minutes.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "daikin_dcg_dcc_15-25ton_service.pdf, p.43"
+      ],
+      "timings": {
+        "search_s": 1.1391564169971389,
+        "rerank_s": 3.534471457998734,
+        "expand_s": 0.06986120800138451,
+        "answer_s": 1.9347483340025065,
+        "total_s": 6.68137637500331
+      },
+      "usage": {
+        "input_tokens": 3230,
+        "output_tokens": 99
+      }
+    },
+    {
+      "id": "q26",
+      "category": "text",
+      "visual_only": false,
+      "question": "What are the factory settings on the adjustable (Wilspec) condenser fan cycling switch in an AAON RN unit?",
+      "gold_answer": "Cut-in at 425 psi (\u00b15) with a 155 psi differential.",
+      "answer": "**Factory Settings for AAON RN Fan Cycling Switch:**\n\n- **Cut-in:** 2.93 MPa [425 psi] (\u00b15 psi) [S2]\n- **Differential:** 1.69 MPa [155 psi] [S2]\n- **Cut-out (Open):** 1.86 MPa [270 psi] (\u00b15 psi) [S2]",
+      "rank": 2,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 0.5,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant correctly identifies the factory cut-in setting of 425 psi (\u00b15 psi) and the 155 psi differential.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "aaon_rn_nextgen_410a_iom.pdf, p.64"
+      ],
+      "timings": {
+        "search_s": 0.6730569999999716,
+        "rerank_s": 3.3045369169994956,
+        "expand_s": 0.0822064589956426,
+        "answer_s": 3.5640322910039686,
+        "total_s": 7.6245227079998585
+      },
+      "usage": {
+        "input_tokens": 6138,
+        "output_tokens": 91
+      }
+    },
+    {
+      "id": "q27",
+      "category": "text",
+      "visual_only": false,
+      "question": "On a York YHE heat pump with the demand defrost control, what ends a defrost cycle, and how long before another defrost is allowed?",
+      "gold_answer": "Liquid line reaching the terminate temperature or 12 minutes of defrost, whichever first; then a 40-minute defrost inhibit timer (accumulated compressor run time).",
+      "answer": "A defrost cycle is ended when the coil temperature reaches the **Terminate Curve** (Region C) [S1, S6]. \n\nThe specific minimum duration or anti-short-cycle delay before another defrost is allowed is **not found in the provided sources**. \n\n* The provided manual shows a defrost is terminated at Region C along the Terminate Curve [S1, S6].\n* For timed defrosts to circulate lubricants, the 6-hour timer resets and restarts only after completion or termination of a defrost cycle [S1].\n* To determine the exact re-initiation delay or lockout time, consult the defrost timing specifications in the complete York YHE service or technical guide.",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": false,
+      "judge_note": "abstained on an answerable question",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "york_yhe_heatpump_install.pdf, p.17"
+      ],
+      "timings": {
+        "search_s": 0.6464463330048602,
+        "rerank_s": 3.035726916998101,
+        "expand_s": 0.13740354100445984,
+        "answer_s": 2.150216124995495,
+        "total_s": 5.970993542003271
+      },
+      "usage": {
+        "input_tokens": 5375,
+        "output_tokens": 142
+      }
+    },
+    {
+      "id": "q28",
+      "category": "audio",
+      "visual_only": false,
+      "question": "On a Copeland CoreSense code 3 lockout, what condensing-to-ambient split did Copeland support say points to a dirty coil or airflow problem instead of a bad pressure switch?",
+      "gold_answer": "About 30\u00b0F: condensing saturation much more than ~30\u00b0F above outdoor ambient on a standard-efficiency condenser.",
+      "answer": "**Much above about 30 degrees [S1].**\n\n- Compare condensing saturation temperature to outdoor ambient on a standard efficiency condenser [S1].\n- If that split exceeds roughly 30\u00b0F, it indicates a dirty coil or airflow problem rather than a bad pressure switch [S1].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "numeric tolerance",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "call_01_copeland_coresense.wav @ 01:05"
+      ],
+      "timings": {
+        "search_s": 0.5173437080011354,
+        "rerank_s": 3.730400958993414,
+        "expand_s": 0.06978487499873154,
+        "answer_s": 1.9216914589997032,
+        "total_s": 6.23928441600583
+      },
+      "usage": {
+        "input_tokens": 3338,
+        "output_tokens": 62
+      }
+    },
+    {
+      "id": "q29",
+      "category": "audio",
+      "visual_only": false,
+      "question": "Danfoss support told me how far above the cut-out to set the pump-down switch cut-in on an SZ scroll. What did they say?",
+      "gold_answer": "Roughly 15 to 20 psi above the cut-out, verified on a compound gauge rather than the dial scale.",
+      "answer": "Set the cut-in roughly **15 to 20 psig above the cut-out** [S1, S2]. \n\n- Danfoss support noted that if the cut-in is set too close, pressure rebound after pump-down will cause the switch to rapid cycle the compressor [S1].\n- They advised against trusting the dial scale on adjustable switches (which can be off by several psig) and recommended using a compound gauge on the suction port to observe the actual cut-out [S2].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant accurately states the 15 to 20 psi differential and includes the recommendation to verify using a compound gauge rather than the dial scale.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "call_02_danfoss_pumpdown.wav @ 01:06",
+        "call_02_danfoss_pumpdown.wav @ 00:41"
+      ],
+      "timings": {
+        "search_s": 1.306084333002218,
+        "rerank_s": 3.4256202079996,
+        "expand_s": 0.06870833299763035,
+        "answer_s": 1.6427839579991996,
+        "total_s": 6.443287750000309
+      },
+      "usage": {
+        "input_tokens": 4289,
+        "output_tokens": 106
+      }
+    },
+    {
+      "id": "q30",
+      "category": "audio",
+      "visual_only": false,
+      "question": "The PUZ-A36NHA3 fan is spinning but it still trips U1 in the afternoon. What did Mitsubishi support tell me to check on the outdoor fan?",
+      "gold_answer": "Clamp the outdoor fan motor amps while running and, with power off, check the blade by hand: a blade slipping on the shaft or very low amps means too little airflow.",
+      "answer": "Mitsubishi support instructed you to check the following on the outdoor fan:\n\n1. **Measure current:** Clamp the outdoor fan motor lead while it is running to verify if the amp draw is way below normal [S2].  \n2. **Inspect mechanically by hand:** Turn power off, grab the fan blade, and check if the blade or hub is loose and slipping on the motor shaft [S2]. \n\n(Even if the motor turns, a slipping blade or low amp draw means it is not moving enough air, which can cause high-pressure U1 trips in the heat) [S1, S2].",
+      "rank": 2,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 0.5,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant accurately details clamping the fan motor amp draw while running and checking by hand with power off to see if the blade is slipping on the shaft.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "call_03_mitsubishi_u1.wav @ 00:41"
+      ],
+      "timings": {
+        "search_s": 0.5720007500058273,
+        "rerank_s": 3.2264704999979585,
+        "expand_s": 0.07121562500105938,
+        "answer_s": 2.2583895830030087,
+        "total_s": 6.128124458999082
+      },
+      "usage": {
+        "input_tokens": 3428,
+        "output_tokens": 126
+      }
+    },
+    {
+      "id": "q31",
+      "category": "audio",
+      "visual_only": false,
+      "question": "After an ASTP trip on the Carrier 38AU, where did support say to put a thermocouple after restart, and at what temperature should I shut it down?",
+      "gold_answer": "On the discharge line about 6 inches from the compressor; shut down above roughly 225\u00b0F.",
+      "answer": "**Clamp location:** On the discharge line, approximately six inches from the compressor [S1].  \n**Shut-down temperature:** If the temperature climbs above roughly 225\u00b0F, shut it down [S1].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "numeric tolerance",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "call_04_carrier_38au_astp.wav @ 00:48"
+      ],
+      "timings": {
+        "search_s": 0.5146951249989797,
+        "rerank_s": 2.582730875001289,
+        "expand_s": 0.0688540839983034,
+        "answer_s": 2.1781520410004305,
+        "total_s": 5.344523332998506
+      },
+      "usage": {
+        "input_tokens": 3116,
+        "output_tokens": 47
+      }
+    },
+    {
+      "id": "q32",
+      "category": "audio",
+      "visual_only": false,
+      "question": "I fixed the Economizer X dial but the W7220 still showed an actuator alarm. What two things did Carrier support have me do?",
+      "gold_answer": "Cycle 24 VAC power to the W7220 so it rediscovers the actuator on the S-bus, and confirm at least about 22 VAC at ACT 24V+/ACT COM while the actuator drives.",
+      "answer": "Carrier support had you do the following:\n\n1. **Cycle the 24-volt power** to the W7220 controller so it rediscovers the actuator on the bus [S2, S4].\n2. **Check the voltage with a meter** across terminals `ACT 24V +` and `ACT COM` while the actuator is driving to verify at least about 22 VAC (checking for a sagging transformer) [S2].",
+      "rank": 2,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 0.5,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant accurately identifies the two steps specified by Carrier support: cycling power to allow rediscovery on the bus and checking for at least about 22 VAC across ACT 24V+ and ACT COM while the actuator drives.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "call_05_carrier_econ_actuator.wav @ 00:47"
+      ],
+      "timings": {
+        "search_s": 0.6425274159992114,
+        "rerank_s": 3.298405374996946,
+        "expand_s": 0.06864187500468688,
+        "answer_s": 2.5289014169975417,
+        "total_s": 6.5385470839974005
+      },
+      "usage": {
+        "input_tokens": 3339,
+        "output_tokens": 97
+      }
+    },
+    {
+      "id": "q33",
+      "category": "audio",
+      "visual_only": false,
+      "question": "How long did Bryant support say to jumper the LAS contacts to test the center condenser fans on the 569J?",
+      "gold_answer": "About 2 minutes.",
+      "answer": "Briefly jump the contacts and let them run for **maybe two minutes** [S2]. \n\n- If the motors run during this test, they are fine [S2]. \n- The center fans (OFM2 and OFM4) are controlled by the low-ambient switch (LAS), which opens at 55\u00b0F and closes at 60\u00b0F (\u00b12\u00b0F), meaning they can normally be off at 58\u00b0F [S1, S2].",
+      "rank": 2,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 0.5,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "numeric tolerance",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "call_06_bryant_569j_lowambient.wav @ 00:22"
+      ],
+      "timings": {
+        "search_s": 0.9751169169976492,
+        "rerank_s": 3.6610574580045068,
+        "expand_s": 0.06906570899445796,
+        "answer_s": 2.7917808330021217,
+        "total_s": 7.497097291998216
+      },
+      "usage": {
+        "input_tokens": 5205,
+        "output_tokens": 104
+      }
+    },
+    {
+      "id": "q34",
+      "category": "audio",
+      "visual_only": false,
+      "question": "Before manually resetting the low-pressure lockout on the Trane Precedent YHJ, how long did support say to run the supply fan by itself, and why?",
+      "gold_answer": "About 15 minutes, to clear frost off the evaporator.",
+      "answer": "Run the supply fan by itself for **about 15 minutes** so that **any frost on the evaporator clears** [S1].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "numeric tolerance",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "call_07_trane_precedent_lpc.wav @ 00:21"
+      ],
+      "timings": {
+        "search_s": 0.6385197499985225,
+        "rerank_s": 3.0622365000017453,
+        "expand_s": 0.13917166600003839,
+        "answer_s": 2.451238875000854,
+        "total_s": 6.291233083000407
+      },
+      "usage": {
+        "input_tokens": 3096,
+        "output_tokens": 28
+      }
+    },
+    {
+      "id": "q35",
+      "category": "cross_modal",
+      "visual_only": false,
+      "question": "CoreSense on a ZPS*K5 is flashing red 3. How many code 3 events does it take to get there, and what should I record before I cycle power to clear it?",
+      "gold_answer": "Four consecutive or ten total Code 3 (pressure switch cycling) events; photograph the LED or write down the flash history before cycling power.",
+      "answer": "It takes **4 consecutive code 3 events or 10 total** to lock out and flash red 3 [S1]. \n\nBefore cycling power to clear the module, **take a photo of the LED or write down the flash history** [S1].",
+      "rank": 1,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 1.0,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant correctly states that it takes four consecutive or ten total events to trigger the lockout and specifies photographing the LED or recording the flash history before cycling power.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "call_01_copeland_coresense.wav @ 00:23"
+      ],
+      "timings": {
+        "search_s": 0.5217062500014435,
+        "rerank_s": 3.165683084000193,
+        "expand_s": 0.06805145800171886,
+        "answer_s": 2.248725666999235,
+        "total_s": 6.004225792006764
+      },
+      "usage": {
+        "input_tokens": 3013,
+        "output_tokens": 55
+      }
+    },
+    {
+      "id": "q36",
+      "category": "cross_modal",
+      "visual_only": false,
+      "question": "Setting up pump-down on a Danfoss SZ scroll on R-134a: what's the minimum pump-down switch setting, and how far above that should the cut-in be?",
+      "gold_answer": "Minimum pump-down setting 7 psig; cut-in roughly 15-20 psi above the actual cut-out.",
+      "answer": "**Minimum pump-down setting:** 7 psig [S1, S4, S7].  \n**Cut-in setting:** Roughly 15 to 20 psig above the cut-out [S2].\n\n- Setting the cut-in 15\u201320 psig above cut-out prevents rapid cycling from pressure rebound after pump-down [S2].  \n- The recommended pump-down cut-out target is about 1 bar below nominal evaporating pressure [S1, S3].",
+      "rank": 2,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 0.5,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant correctly provides the 7 psig minimum pump-down setting and the cut-in value of 15 to 20 psig above cut-out.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "call_02_danfoss_pumpdown.wav @ 01:06"
+      ],
+      "timings": {
+        "search_s": 0.5110145419967012,
+        "rerank_s": 3.235354250005912,
+        "expand_s": 0.06846766699891305,
+        "answer_s": 2.136461624999356,
+        "total_s": 5.951356124998711
+      },
+      "usage": {
+        "input_tokens": 3369,
+        "output_tokens": 106
+      }
+    },
+    {
+      "id": "q37",
+      "category": "cross_modal",
+      "visual_only": false,
+      "question": "At what internal temperature does ASTP unload the scrolls on the Carrier 38AU compressor, and what discharge-line temperature after restart means shut it back down?",
+      "gold_answer": "About 300\u00b0F internal; shut down if the discharge line (6 in from the compressor) goes above roughly 225\u00b0F.",
+      "answer": "ASTP unloads the scrolls at approximately **149\u00b0C (300\u00b0F)** [S1, S2]. After restart, shut the compressor back down if the discharge-line temperature climbs above roughly **225\u00b0F** [S4]. \n\n- Internal ASTP tripping occurs via a bi-metal disk valve opening at ~300\u00b0F to separate the scroll elements [S1, S2].\n- The post-restart check requires clamping a thermocouple on the discharge line about six inches from the compressor [S4].",
+      "rank": 2,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 0.5,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant accurately provides both the 300\u00b0F internal trip temperature and the 225\u00b0F discharge-line shut-down threshold.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "call_04_carrier_38au_astp.wav @ 00:48"
+      ],
+      "timings": {
+        "search_s": 1.1093429169995943,
+        "rerank_s": 3.5763643750033225,
+        "expand_s": 0.07010199999785982,
+        "answer_s": 1.626686540999799,
+        "total_s": 6.382550707996415
+      },
+      "usage": {
+        "input_tokens": 3256,
+        "output_tokens": 116
+      }
+    },
+    {
+      "id": "q38",
+      "category": "cross_modal",
+      "visual_only": false,
+      "question": "Bryant 569J center fans are off at 58\u00b0F. At what temperatures does the low ambient switch open and close, and where shouldn't the LAS sensor be mounted?",
+      "gold_answer": "Opens at 55\u00b0F and closes at 60\u00b0F (\u00b12.16\u00b0F); keep the LAS sensor out of direct sun and coil discharge air.",
+      "answer": "The low ambient temperature switch (LAS) opens at 55\u00b0F \u00b1 2.16\u00b0F (12.8\u00b0C \u00b1 1.2\u00b0C) and closes at 60\u00b0F \u00b1 2.16\u00b0F (15.6\u00b0C \u00b1 1.2\u00b0C) [S1, S4]. \n\nSupporting details:\n- Center fans (OFM2, OFM4) being off below approximately 60\u00b0F (16\u00b0C) is normal operation [S2, S3, S6].\n- The LAS sensor should not be mounted in direct sunlight or in the coil discharge air path [S2, S5].",
+      "rank": 2,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 0.5,
+      "evidence_hit": true,
+      "correct": true,
+      "judge_note": "CORRECT\nThe assistant correctly identified the open and close temperatures (55\u00b0F and 60\u00b0F \u00b1 2.16\u00b0F) and accurately stated that the sensor should not be mounted in direct sunlight or in the coil discharge air path.",
+      "citation_correct": false,
+      "has_citation": false,
+      "citations": [],
+      "timings": {
+        "search_s": 0.5116283750030561,
+        "rerank_s": 3.001397125000949,
+        "expand_s": 0.06919570800528163,
+        "answer_s": 2.2128833339957055,
+        "total_s": 5.795126416996936
+      },
+      "usage": {
+        "input_tokens": 3430,
+        "output_tokens": 148
+      }
+    },
+    {
+      "id": "q39",
+      "category": "cross_modal",
+      "visual_only": false,
+      "question": "How many low-pressure trips in the first three minutes lock out a Trane Precedent YHJ circuit, and what should I watch after the manual reset?",
+      "gold_answer": "Four consecutive LPC opens during the first three minutes; after reset, watch suction pressure through the first three minutes and stop resetting if it dips toward cut-out.",
+      "answer": "**Answer:**\nFour consecutive low-pressure trips during the first three minutes of operation will lock out the circuit and require a manual reset [S1]. \n\n**Key details to watch after reset:**\n- Ensure the low-pressure switch/input does not open for one continuous second while running, which triggers a shutdown and enforces a minimum 3-minute restart delay [S1].\n- If you are monitoring condensate overflow/compressor disable inputs on the unit, auto-reset clearing only occurs twice per power-up; a third occurrence triggers another manual reset lockout unless 72 hours elapse without a trip [S3].",
+      "rank": 3,
+      "recall@5": 1.0,
+      "recall@26": 1.0,
+      "mrr": 0.3333333333333333,
+      "evidence_hit": true,
+      "correct": false,
+      "judge_note": "INCORRECT\nThe assistant correctly states that four consecutive trips cause a lockout, but omits the key instruction to watch the suction pressure through the first three minutes after reset.",
+      "citation_correct": true,
+      "has_citation": true,
+      "citations": [
+        "call_07_trane_precedent_lpc.wav @ 00:00",
+        "trane_precedent_yhj_rt-svx075a.pdf, p.9"
+      ],
+      "timings": {
+        "search_s": 0.5158815830000094,
+        "rerank_s": 3.0278650830005063,
+        "expand_s": 0.1354149580001831,
+        "answer_s": 2.312639916999615,
+        "total_s": 5.995516333001433
+      },
+      "usage": {
+        "input_tokens": 4220,
+        "output_tokens": 129
+      }
+    },
+    {
+      "id": "q40",
+      "category": "cross_modal",
+      "visual_only": false,
+      "question": "Goodman DSZ CoreSense locked out on red LOCK 4. What are the likely causes, and how long can locked-rotor current last on the restart attempt before I kill power?",
+      "gold_answer": "Failed run capacitor, low line voltage, excessive liquid refrigerant in the compressor, or seized bearings; kill power if locked-rotor current lasts more than about 3 seconds.",
+      "answer": "**Likely causes:** Failed run capacitor or low line voltage (from wiring issues or utility supply) [S1]. \n\nRegarding how long locked-rotor current can last on a restart attempt before killing power: **Not found in the provided sources.** The Copeland CoreSense manual's Code 4 specifications or the Goodman DSZ service manual would be needed to settle this trip/duration timing. \n\n- Red LOCK 4 (with yellow LED off) indicates a locked rotor lockout, occurring after 10 consecutive locked rotor events [S1].\n- If voltage is low at the disconnect, check wiring or contact the utility [S1].",
+      "rank": 15,
+      "recall@5": 0.0,
+      "recall@26": 1.0,
+      "mrr": 0.06666666666666667,
+      "evidence_hit": false,
+      "correct": false,
+      "judge_note": "abstained on an answerable question",
+      "citation_correct": false,
+      "has_citation": true,
+      "citations": [
+        "call_08_goodman_coresense_lockedrotor.wav @ 00:00"
+      ],
+      "timings": {
+        "search_s": 0.5265889999936917,
+        "rerank_s": 2.931048250000458,
+        "expand_s": 0.13511783300054958,
+        "answer_s": 2.4252800419999403,
+        "total_s": 6.018085916002747
+      },
+      "usage": {
+        "input_tokens": 3253,
+        "output_tokens": 132
+      }
+    }
+  ]
+}

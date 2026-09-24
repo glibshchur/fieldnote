@@ -77,12 +77,40 @@ def index_pages(batch_size: int = 4) -> None:
     embs = []
     for i in tqdm(range(0, len(pages), 64), desc="pages x64"):
         embs.extend(enc.encode_pages([c.image_path for c in pages[i : i + 64]], batch_size))
-    PageIndex.build(pages, embs).save(s.page_index_dir)
+    index = PageIndex.build(pages, embs)
+    repair_nonfinite(index, enc)
+    index.save(s.page_index_dir)
     avg = sum(e.shape[0] for e in embs) / len(embs)
     typer.echo(
         f"indexed {len(pages)} pages ({avg:.0f} patch vectors each) in "
         f"{time.perf_counter() - t0:.0f}s -> {s.page_index_dir}"
     )
+
+
+def repair_nonfinite(index, enc) -> None:
+    bad = index.nonfinite_pages()
+    if not bad:
+        return
+    typer.echo(f"re-encoding {len(bad)} pages with non-finite fp16 embeddings in fp32")
+    fixed = enc.encode_pages_fp32([index.chunks[i].image_path for i in bad])
+    for i, emb in zip(bad, fixed, strict=True):
+        index.replace(i, emb)
+    still = index.nonfinite_pages()
+    if still:
+        raise typer.Exit(f"{len(still)} pages still non-finite after fp32 re-encode")
+
+
+@app.command("repair-pages")
+def repair_pages() -> None:
+    """Fix non-finite page embeddings in an existing ColQwen index (fp32 re-encode)."""
+    from fieldnote.encoders.colpali import ColQwenEncoder
+    from fieldnote.index.pages import PageIndex
+
+    s = get_settings()
+    index = PageIndex.load(s.page_index_dir)
+    repair_nonfinite(index, ColQwenEncoder(s.page_model, s.device))
+    index.save(s.page_index_dir)
+    typer.echo(f"ok: {len(index.nonfinite_pages())} non-finite pages remain")
 
 
 @app.command()
