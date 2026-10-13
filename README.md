@@ -1,11 +1,15 @@
 # Fieldnote
 
+[![ci](https://github.com/glibshchur/fieldnote/actions/workflows/ci.yml/badge.svg)](https://github.com/glibshchur/fieldnote/actions/workflows/ci.yml)
+
 **Multimodal RAG for HVAC field technicians.** Fieldnote answers questions whose evidence exists
 only inside a picture: a pressure curve on page 112 of a service manual, a wiring diagram, a photo
 of a failed contactor. It also searches recorded manufacturer support calls.
 
 > A tech on a roof asks why unit 7 keeps tripping on high pressure. The answer lives in a chart,
 > not in a paragraph.
+
+![Answer beside the charging chart it was read from](docs/demo.gif)
 
 **Status:** pipeline, corpus (40 public manuals), 40-question eval, caption baseline, and
 the ColQwen page-lane ablation are measured. Every number below comes from a file in
@@ -70,8 +74,6 @@ throws away the axis values the question needed.
 Fieldnote keeps each modality in its own embedding space and lets the answer model read the actual
 pixels. The caption-only pipeline is built too, as the baseline, with a captioner told to transcribe
 every value it can see. That makes it a strong baseline, not a straw man.
-
-![Answer beside the charging chart it was read from](docs/demo.gif)
 
 ## How it works
 
