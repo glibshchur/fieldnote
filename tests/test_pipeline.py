@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 from PIL import Image
 
 from fieldnote.baseline.caption import CaptionCache, build_caption_index, caption_chunks
@@ -224,7 +225,7 @@ def test_caption_failures_are_skipped_and_resumable(tmp_path):
 
 
 def test_page_index_maxsim_and_roundtrip(tmp_path):
-    import torch
+    torch = pytest.importorskip("torch")  # page index is ml-extra only; CI installs core
 
     from fieldnote.index.pages import PageIndex
 
@@ -269,7 +270,7 @@ def test_shared_encoder_embeds_once_per_question(settings, tmp_path):
 
 
 def test_page_index_never_ranks_nan_pages_first():
-    import torch
+    torch = pytest.importorskip("torch")  # page index is ml-extra only; CI installs core
 
     from fieldnote.index.pages import PageIndex
 
