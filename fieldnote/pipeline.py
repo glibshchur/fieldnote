@@ -57,10 +57,13 @@ class Fieldnote:
     def ask(self, question: str) -> Answer:
         t0 = time.perf_counter()
         r = self.last_retrieval = self.retrieve(question)
-        evidence = r.reranked[: self.settings.top_n]
         te = time.perf_counter()
-        evidence = evidence + expand_page_figures(
-            evidence, self.retriever.store.page_chunks, self.settings.expand_page_figures
+        evidence = prepare_evidence(
+            r.reranked,
+            self.settings.top_n,
+            self.retriever.store.page_chunks,
+            self.settings.expand_page_figures,
+            self.settings.max_page_renders,
         )
         t1 = time.perf_counter()
         text, cited, stop, usage = synthesize(
@@ -81,6 +84,36 @@ class Fieldnote:
             {"expand_s": t1 - te, "answer_s": t2 - t1, "total_s": time.perf_counter() - t0}
         )
         return Answer(question, text, citations, evidence, stop, timings, usage)
+
+
+def prepare_evidence(
+    reranked: list[Candidate],
+    top_n: int,
+    page_chunks: Callable[[str, int, str], list[Chunk]],
+    expand_limit: int,
+    max_page_renders: int,
+) -> list[Candidate]:
+    """Head of the reranked list, with figure crops preferred over full-page renders.
+
+    A ColQwen hit is a whole page. Keep at most `max_page_renders` of those, fill the freed
+    slots with the next non-page candidates, then attach figure crops so the model can read
+    the chart without a stack of full-page images crowding it out.
+    """
+    selected: list[Candidate] = []
+    pages_kept = 0
+    for cand in reranked:
+        if len(selected) >= top_n:
+            break
+        if cand.chunk.source_type == "manual_page":
+            if pages_kept >= max_page_renders:
+                continue
+            pages_kept += 1
+        selected.append(cand)
+
+    # Keep the capped page render. Dropping it in favor of a crop hid diagrams whose
+    # answer is the page itself (a wiring figure the detector split into the wrong region).
+    added = expand_page_figures(selected, page_chunks, expand_limit)
+    return selected + added
 
 
 def expand_page_figures(
@@ -137,7 +170,11 @@ def load_pipeline(
         lanes = native_lanes(
             text_enc, image_enc, settings.k_text, settings.k_image, settings.k_audio
         )
-        if settings.k_page > 0 and (settings.page_index_dir / "pages.pt").exists():
+        if (
+            settings.page_lane
+            and settings.k_page > 0
+            and (settings.page_index_dir / "pages.pt").exists()
+        ):
             from fieldnote.encoders.colpali import ColQwenEncoder
             from fieldnote.index.pages import PageIndex
             from fieldnote.retrieve.search import page_lane

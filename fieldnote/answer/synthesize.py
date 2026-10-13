@@ -13,7 +13,9 @@ from fieldnote.answer.prompts import ANSWER_SYSTEM
 from fieldnote.llm import LLM, image_block, text_block
 from fieldnote.types import Candidate, format_ts
 
-CITE_RE = re.compile(r"\[S(\d+)\]")
+# One bracket may hold a single id ([S2]) or a group ([S4, S6]).
+_CITE_GROUP_RE = re.compile(r"\[([^\]]+)\]")
+_SID_RE = re.compile(r"S(\d+)")
 
 
 @dataclass
@@ -52,15 +54,22 @@ def build_content(question: str, evidence: list[Candidate], use_images: bool) ->
     return blocks
 
 
+def extract_citations(text: str, n_evidence: int) -> list[str]:
+    """Source ids cited in the answer, in order, ignoring ids outside the evidence."""
+    cited: list[str] = []
+    for group in _CITE_GROUP_RE.findall(text):
+        for n in _SID_RE.findall(group):
+            sid = f"S{n}"
+            if sid not in cited and 1 <= int(n) <= n_evidence:
+                cited.append(sid)
+    return cited
+
+
 def synthesize(
     llm: LLM, question: str, evidence: list[Candidate], use_images: bool = True
 ) -> tuple[str, list[str], str | None, dict[str, int]]:
     """Returns (answer text, cited source ids like "S2", stop reason, token usage)."""
     result = llm.complete(ANSWER_SYSTEM, build_content(question, evidence, use_images))
-    cited = []
-    for n in CITE_RE.findall(result.text):
-        sid = f"S{n}"
-        if sid not in cited and 1 <= int(n) <= len(evidence):
-            cited.append(sid)
+    cited = extract_citations(result.text, len(evidence))
     usage = {"input_tokens": result.input_tokens, "output_tokens": result.output_tokens}
     return result.text, cited, result.stop_reason, usage

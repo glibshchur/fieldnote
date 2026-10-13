@@ -7,33 +7,27 @@ of a failed contactor. It also searches recorded manufacturer support calls.
 > A tech on a roof asks why unit 7 keeps tripping on high pressure. The answer lives in a chart,
 > not in a paragraph.
 
-**Status:** pipeline, corpus (40 public manuals, 3,445 pages), 40-question eval set and
-TTS support calls are built. The caption-only baseline run is next. Every number below comes
-from a results file in `eval/results/`; none are typed by hand.
+**Status:** pipeline, corpus (40 public manuals), 40-question eval, caption baseline, and
+the ColQwen page-lane ablation are measured. Every number below comes from a file in
+`eval/results/`.
 
-## Results so far
+## Results
 
-Fieldnote on all 40 questions, answer model `gemini-3.8-flash`:
+Answer model `gemini-3.8-flash`. The published system is k=20 (text 8, image 8, audio 4),
+rerank top 12, page lane off.
 
 | Iteration | Recall@5 | Answer acc. (all 40) | Answer acc. (15 visual-only) | p95 latency |
 |---|---|---|---|---|
 | Parallel search + RRF | 0.50 | 0.30 | 0.13 | 5.2 s |
-| + multimodal reranker (jina-reranker-m0) | 0.80 | 0.65 | 0.33* | 9.7 s |
-| + page-figure expansion, capped rerank pool | 0.80 | **0.75** | **0.53** | 6.2 s |
+| + multimodal reranker | 0.80 | 0.65 | 0.33 | 9.7 s |
+| + page-figure expansion | 0.80 | 0.75 | 0.53 | 6.2 s |
+| Same config, rerun 2026-09-25 | 0.80 | 0.70 | 0.47 | 6.6 s |
+| + ColQwen page lane (ablation) | 0.88 | 0.70 | 0.47 | 8.1 s |
 
-\* included one question later found to leak as text elsewhere in the corpus; it was replaced
-(see `eval/README.md`).
-
-What the numbers say:
-- **When the gold chart reaches the model, it answers correctly (8 of 8).** Every remaining
-  visual miss (7 of 7) is a retrieval miss. Image retrieval over dense diagrams is the
-  bottleneck, not the answer model. Next: a ColQwen2 page-image index.
-- **Page-figure expansion** fixed chart questions (0.25 to 0.75): text retrieval finds the right
-  page through the chart's title and axis labels, but the curve only exists in the image, so
-  the page's figures now ride along with the text.
-- **The reranker** moved the right support-call segment into the top 5 every time
-  (audio 0.14 to 0.86, cross-modal 0.00 to 1.00).
-- p95 latency is 0.2 s over the 6 s target; reranking and answering are the two big costs.
+Latency is the 95th percentile of 120 end-to-end asks (40 questions × 3 passes) for the
+published rows, and of the single quality pass for the page-lane ablation. Rerank images
+at 384 px dropped p50 from 5.1 s to 3.8 s and left p95 at 6.6 s, while visual accuracy
+fell to 0.40, so 640 px stays the default. The tail is the answer call, not search.
 
 ### Head to head: caption-only baseline vs Fieldnote
 
@@ -41,23 +35,31 @@ Same corpus, questions, reranker (scoring caption text in baseline mode), page e
 answer model. The baseline captions every figure with `gemini-3.8-flash` (told to transcribe
 labels and read curve values) and never sends pixels anywhere.
 
+Paired comparison, both systems on the expansion config
+(`20260924-221045_native-jina-expand.json` and `20260924-231557_caption-jina-expand.json`):
+
 | System | Visual-only acc. (15) | Charts (8) | Diagrams / image tables (7) | All 40 | p95 latency |
 |---|---|---|---|---|---|
 | Caption-only baseline | 0.47 | 0.50 | **0.43** | 0.38 | **3.5 s** |
 | Fieldnote | **0.53** | **0.75** | 0.29 | **0.75** | 6.2 s |
 
-What it actually shows (the honest version):
-- **Reading: pixels beat captions.** With the gold evidence in hand, Fieldnote answered 8/8 from
-  the image; the baseline answered 7/10 from captions. Captions dropped or misread the value
-  the question needed (e.g. a charging chart read as 116 °F instead of 106 °F).
-- **Retrieval: captions beat SigLIP on text-dense diagrams.** Captions transcribe the words
-  printed inside schematics and image-only tables, so text search finds them; a single SigLIP
-  vector per image does not. That is the gap the ColQwen2.5 page lane targets.
-- **Most of the all-40 gap is not about vision.** Long captions win ~38% of the top-5 evidence
-  slots even on text and audio questions, crowding out support-call segments. Real, but a
-  property of caption pipelines, not proof that native vision is better.
-- On the 15 visual-only questions the margin is small (0.53 vs 0.47). Not yet the clear win
-  the project is after.
+A later Fieldnote-only rerun of the same k=20 config scored 0.47 on the visual questions
+(`20260925-203047_native-k20.json`). One question. The margin does not hold still.
+
+**When late fusion is worth it.** Use it when the value lives on a curve and the gold page
+is already in the top 5. On that paired run, every chart that reached the vision model was
+read correctly (8/8), and captions misread values they had transcribed (a charging chart
+read as 116 °F instead of 106 °F). Pay the extra latency for those questions.
+
+**When a caption index is enough.** Text-dense schematics and image-only tables. Captions
+beat SigLIP there (diagram accuracy 0.43 vs 0.29) because they transcribe the words inside
+the drawing. The ColQwen page lane closes some of that retrieval gap (visual recall@5 0.53
+to 0.73) and does not raise answer accuracy: other charts get misread, and p95 moves to
+8.1 s. It stays off unless `FIELDNOTE_PAGE_LANE=1`.
+
+The all-40 gap in the paired table is mostly captions crowding support-call segments out of
+the top 5, not proof that pixels are better at prose. Five visual questions that still fail,
+and why, are in [docs/error_analysis.md](docs/error_analysis.md).
 
 ## The trap this project avoids
 
@@ -68,6 +70,8 @@ throws away the axis values the question needed.
 Fieldnote keeps each modality in its own embedding space and lets the answer model read the actual
 pixels. The caption-only pipeline is built too, as the baseline, with a captioner told to transcribe
 every value it can see. That makes it a strong baseline, not a straw man.
+
+![Answer beside the charging chart it was read from](docs/demo.gif)
 
 ## How it works
 
@@ -81,7 +85,7 @@ every value it can see. That makes it a strong baseline, not a straw man.
            ├─► image lane (image vector, modality=image) ├─ parallel ─► RRF ─► multimodal
            └─► audio lane (text vector,  modality=audio) ┘                     rerank (top 20→5)
                                                                                     │
-                  Claude (vision) reads crops + passages, cites [S1]..[S5] ◄────────┘
+                  vision model reads crops + passages, cites [S1]..[S5] ◄──────────┘
                                                                                     │
             answer + citations: doc, page, cropped chart image | call @ mm:ss ◄─────┘
 ```
@@ -118,6 +122,7 @@ make fetch                 # download manuals listed in data/manifest.yaml
 make calls                 # render support-call scripts to audio (macOS say)
 make ingest                # manuals, photos, calls -> artifacts/chunks.jsonl
 make index                 # native multimodal index
+make index-pages           # optional ColQwen page lane (then FIELDNOTE_PAGE_LANE=1)
 make caption               # caption-only baseline index
 make eval-native eval-caption compare
 make demo                  # Streamlit UI

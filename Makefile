@@ -1,4 +1,4 @@
-.PHONY: install install-ml test lint fetch calls ingest index caption eval-native eval-caption compare serve demo qdrant
+.PHONY: install install-ml test lint fetch calls ingest index index-pages caption eval-native eval-caption compare serve demo qdrant
 
 install:
 	uv sync
@@ -24,6 +24,9 @@ ingest:
 
 index:
 	uv run --extra ml fieldnote index
+
+index-pages:
+	uv run --extra ml fieldnote index-pages
 
 caption:
 	uv run --extra ml fieldnote caption

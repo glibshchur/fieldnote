@@ -63,6 +63,7 @@ class JinaM0Reranker:
             )
         self.model = model.to(dev).eval()
         self.image_px = image_px
+        self._thumbs: dict[str, object] = {}
         # False for the caption-only baseline: image candidates are scored by caption text,
         # so the baseline never sees pixels anywhere in the pipeline.
         self.use_images = use_images
@@ -72,10 +73,15 @@ class JinaM0Reranker:
         (title, curve labels, layout) survives at 640 px even when exact values do not."""
         from PIL import Image
 
+        cached = self._thumbs.get(path)
+        if cached is not None:
+            return cached
         with Image.open(path) as im:
             im = im.convert("RGB")
             im.thumbnail((self.image_px, self.image_px))
-            return im.copy()
+            cached = im.copy()
+        self._thumbs[path] = cached
+        return cached
 
     def rerank(self, question: str, candidates: list[Candidate]) -> list[Candidate]:
         images = [

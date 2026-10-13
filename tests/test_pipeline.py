@@ -180,6 +180,24 @@ def test_page_expansion_adds_figures_from_text_pages(tmp_path):
     assert expand_page_figures([Candidate(text, 1, "text")], lookup, 0) == []
 
 
+def test_prepare_evidence_prefers_crops_over_extra_pages(tmp_path):
+    from fieldnote.pipeline import prepare_evidence
+
+    page = Chunk("image", "manual_page", "m.pdf", page=22)
+    page2 = Chunk("image", "manual_page", "m.pdf", page=23)
+    text = Chunk("text", "manual_text", "m.pdf", text="charging chart", page=22)
+    fig = Chunk("image", "manual_figure", "m.pdf", page=22, bbox=(0, 0, 200, 200))
+    lookup = lambda src, pg, st: [fig] if (src, pg) == ("m.pdf", 22) else []  # noqa: E731
+    reranked = [Candidate(c, 1, "x") for c in (page, page2, text)]
+    evidence = prepare_evidence(
+        reranked, top_n=2, page_chunks=lookup, expand_limit=2, max_page_renders=1
+    )
+    ids = {c.chunk.id for c in evidence}
+    assert page.id in ids  # the one allowed page render stays; the crop is added beside it
+    assert fig.id in ids and text.id in ids
+    assert page2.id not in ids  # a second full page does not take a top_n slot
+
+
 def test_store_page_chunks_filters_by_page_and_type(tmp_path):
     chunks = _corpus(tmp_path)
     store = ChunkStore(make_client(":memory:"), "t")

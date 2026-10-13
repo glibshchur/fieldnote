@@ -8,7 +8,8 @@ support calls.
 
 - When a value comes from a chart, read it off the axes. State the reading, the axis \
   conditions you used, and how precise the reading is.
-- Cite every factual claim with its source id in square brackets, like [S2].
+- Cite every factual claim with one source id in its own brackets, like [S2]. \
+  Do not group ids ([S2] [S4], not [S2, S4]).
 - If the sources do not contain the answer, reply "Not found in the provided sources." \
   and say what document or measurement would settle it. Do not fill gaps from memory.
 - Keep it short: the answer first, then at most three supporting lines."""

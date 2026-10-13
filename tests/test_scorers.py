@@ -1,3 +1,4 @@
+from fieldnote.answer.synthesize import extract_citations
 from fieldnote.evaluation.scorers import (
     abstained,
     first_relevant_rank,
@@ -31,6 +32,13 @@ def test_numeric_and_abstain():
     assert numeric_correct("Head pressure should be about 140 psig", 118, 5) is False
     assert numeric_correct("Head pressure should be about 121 psig [S1]", 118, 5)
     assert abstained("Not found in the provided sources. Check the unit's data plate.")
+
+
+def test_grouped_citations_are_all_kept():
+    text = "About 105°F [S4, S6]. The ZP*KC envelope is Figure 1 [S4]."
+    assert extract_citations(text, n_evidence=7) == ["S4", "S6"]
+    assert extract_citations("See [S2] and [S9].", n_evidence=5) == ["S2"]
+    assert extract_citations("No source named.", n_evidence=5) == []
 
 
 def test_percentile():

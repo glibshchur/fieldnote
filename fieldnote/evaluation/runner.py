@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
@@ -24,8 +25,46 @@ def load_questions(path: Path) -> list[Question]:
     return [Question(**json.loads(line)) for line in path.read_text().splitlines() if line.strip()]
 
 
+_TRANSIENT = {
+    "RemoteProtocolError",
+    "ConnectError",
+    "ReadError",
+    "ReadTimeout",
+    "WriteTimeout",
+    "WriteError",
+    "APIError",
+    "APIConnectionError",
+    "ServerError",
+}
+
+
+def _transient(exc: BaseException) -> bool:
+    seen: set[int] = set()
+    current: BaseException | None = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        text = f"{type(current).__name__} {current}".lower()
+        if type(current).__name__ in _TRANSIENT or "broken pipe" in text or "disconnect" in text:
+            return True
+        current = current.__cause__ or current.__context__
+    return False
+
+
+def ask_with_retry(pipe: Fieldnote, question: str, attempts: int = 5):
+    """One answer, retried when the provider drops the connection mid-eval."""
+    for attempt in range(attempts):
+        try:
+            return pipe.ask(question)
+        except Exception as exc:
+            if attempt == attempts - 1 or not _transient(exc):
+                raise
+            wait = 2 * (attempt + 1)
+            print(f"retry in {wait}s after {type(exc).__name__}", flush=True)
+            time.sleep(wait)
+
+
 def evaluate_one(pipe: Fieldnote, q: Question, judge: LLM | None, k_pool: int) -> dict:
-    ans = pipe.ask(q.question)
+    ans = ask_with_retry(pipe, q.question)
     retrieval = pipe.last_retrieval
     reranked = [c.chunk for c in retrieval.reranked]
     rank = first_relevant_rank(reranked, q.gold_sources)
@@ -97,7 +136,20 @@ def run_eval(
     repeats: int = 1,
 ) -> tuple[dict, Path]:
     k_pool = pipe.settings.k_total
-    rows = []
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    out = out_dir / f"{stamp}_{system_name}.json"
+    config = {k: str(v) for k, v in asdict(pipe.settings).items() if not k.endswith("_dir")} | {
+        "mode": pipe.mode,
+        "reranker": type(pipe.reranker).__name__,
+        "k_total": str(k_pool),
+    }
+    rows: list[dict] = []
+
+    def save(summary: dict) -> None:
+        record = {"system": system_name, "config": config, "summary": summary, "rows": rows}
+        out.write_text(json.dumps(record, indent=2))
+
     for i, q in enumerate(questions, 1):
         row = evaluate_one(pipe, q, judge, k_pool)
         rows.append(row)
@@ -107,28 +159,16 @@ def run_eval(
             f"{row['timings']['total_s']:.1f}s",
             flush=True,
         )
-    out_dir.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    out = out_dir / f"{stamp}_{system_name}.json"
-    config = {k: str(v) for k, v in asdict(pipe.settings).items() if not k.endswith("_dir")} | {
-        "mode": pipe.mode,
-        "reranker": type(pipe.reranker).__name__,
-        "k_total": str(k_pool),
-    }
+        save(summarize(rows, k_pool))
 
-    def save(summary: dict) -> None:
-        record = {"system": system_name, "config": config, "summary": summary, "rows": rows}
-        out.write_text(json.dumps(record, indent=2))
-
-    # Save quality results now so a failure in the latency passes can't lose them.
     summary = summarize(rows, k_pool)
-    save(summary)
 
-    # Extra passes only re-measure latency; quality numbers come from the first pass.
+    # Models are resident after the quality pass. Further passes measure steady-state latency;
+    # a dropped connection is retried so one blip does not discard the run.
     extra_latency = []
     for p in range(repeats - 1):
         for q in questions:
-            extra_latency.append(pipe.ask(q.question).timings["total_s"])
+            extra_latency.append(ask_with_retry(pipe, q.question).timings["total_s"])
         print(f"latency pass {p + 2}/{repeats} done", flush=True)
     if extra_latency:
         all_lat = [r["timings"]["total_s"] for r in rows] + extra_latency
@@ -164,13 +204,23 @@ def results_table(results: dict[str, dict], k_pool: int = 20) -> str:
 def rescore(results_path: Path, questions: list[Question]) -> tuple[dict, Path]:
     """Re-apply deterministic scorers (numeric, abstain) to saved answers without new LLM
     calls. Judge verdicts on free-text answers are kept unless the answer abstained."""
+    from fieldnote.answer.synthesize import extract_citations
     from fieldnote.evaluation.scorers import abstained, numeric_correct
 
     data = json.loads(results_path.read_text())
     by_id = {q.id: q for q in questions}
+    # top_n evidence plus page-figure expansion; ids past this are model inventions.
+    n_evidence = int(data["config"].get("top_n", 5)) + int(
+        data["config"].get("expand_page_figures", 2)
+    )
     changed = []
     for row in data["rows"]:
         q = by_id[row["id"]]
+        cited = extract_citations(row["answer"], n_evidence)
+        had = row["has_citation"]
+        row["has_citation"] = bool(cited) or bool(row.get("citations"))
+        if row["has_citation"] != had:
+            changed.append(f"{row['id']}: cited {had} -> {row['has_citation']} ({cited})")
         before = row["correct"]
         if q.answer_type == "abstain":
             row["correct"] = abstained(row["answer"])

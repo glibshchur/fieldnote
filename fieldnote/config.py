@@ -45,13 +45,16 @@ class Settings:
     k_text: int = field(default_factory=lambda: int(_env("FIELDNOTE_K_TEXT", "8")))
     k_image: int = field(default_factory=lambda: int(_env("FIELDNOTE_K_IMAGE", "8")))
     k_audio: int = field(default_factory=lambda: int(_env("FIELDNOTE_K_AUDIO", "4")))
-    # Page lane (ColQwen2.5 multi-vector); used when artifacts/colqwen exists.
+    # Page lane (ColQwen2.5 multi-vector). Off in the published k=20 config; the index
+    # is an ablation turned on with FIELDNOTE_PAGE_LANE=1.
+    page_lane: bool = field(default_factory=lambda: _env("FIELDNOTE_PAGE_LANE", "0") == "1")
     k_page: int = field(default_factory=lambda: int(_env("FIELDNOTE_K_PAGE", "6")))
     page_model: str = field(
         default_factory=lambda: _env("FIELDNOTE_PAGE_MODEL", "vidore/colqwen2.5-v0.2")
     )
     top_n: int = field(default_factory=lambda: int(_env("FIELDNOTE_TOP_N", "5")))
-    # Rerank only the head of the fused list (top 4 per lane): reranking is the latency hot spot.
+    # Rerank only the head of the fused list. Scoring 8 instead of 12 was measured and
+    # tied the caption baseline on the visual questions, so the published pool stays 12.
     rerank_k: int = field(default_factory=lambda: int(_env("FIELDNOTE_RERANK_K", "12")))
     reranker_image_px: int = field(
         default_factory=lambda: int(_env("FIELDNOTE_RERANKER_IMAGE_PX", "640"))
@@ -59,6 +62,11 @@ class Settings:
     # When a text chunk makes the evidence, also show the figures printed on that page.
     expand_page_figures: int = field(
         default_factory=lambda: int(_env("FIELDNOTE_EXPAND_PAGE_FIGURES", "2"))
+    )
+    # Full-page renders are a retrieval hint. The answer model reads figure crops; extra
+    # page images crowd those crops out and slow the reranker.
+    max_page_renders: int = field(
+        default_factory=lambda: int(_env("FIELDNOTE_MAX_PAGE_RENDERS", "1"))
     )
     reranker: str = field(default_factory=lambda: _env("FIELDNOTE_RERANKER", "jina"))
     reranker_model: str = field(
@@ -86,7 +94,8 @@ class Settings:
 
     @property
     def k_total(self) -> int:
-        pages = self.k_page if (self.page_index_dir / "pages.pt").exists() else 0
+        use_pages = self.page_lane and (self.page_index_dir / "pages.pt").exists()
+        pages = self.k_page if use_pages else 0
         return self.k_text + self.k_image + self.k_audio + pages
 
     @property
